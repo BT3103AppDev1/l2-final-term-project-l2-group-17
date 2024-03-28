@@ -13,7 +13,7 @@
           :options="formattedModules" 
           v-model="selectedModule" 
           :disabled="editingIndex !== null"
-          placeholder="Select Module Name">
+          placeholder="Search Module Code">
         </v-select>
       </div>
       <div class="form-group mt-3">
