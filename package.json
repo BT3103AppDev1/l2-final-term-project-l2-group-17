@@ -9,6 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mui/icons-material": "^5.15.14",
+    "@mui/material": "^5.15.14",
+    "bootstrap": "^5.3.3",
     "vue": "^3.4.21"
   },
   "devDependencies": {
