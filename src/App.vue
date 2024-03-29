@@ -1,42 +1,35 @@
-<script setup></script>
-
 <template>
-  <header>
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <div id="app">
+    <Login/>
+    <Logout/>
+    <SignUp/>
+    <ResetPassword/>
+    <ForgotPassword/>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+<script setup>
+  import Login from './components/Login.vue';
+  import Logout from './components/Logout.vue';
+  import SignUp from './components/SignUp.vue';
+  import ResetPassword from './views/ResetPassword.vue';
+  import ForgotPassword from './views/ForgotPassword.vue';
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+  const name = 'App';
+  const components = {
+    Login,
+    Logout,
+    SignUp,
+  };
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
+  const views = {
+    ForgotPassword,
+    ResetPassword,
+  };
+  
+</script>
+
+
+
