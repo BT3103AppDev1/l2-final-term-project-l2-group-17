@@ -1,95 +1,118 @@
 <template>
-    <div :id="module.code" class="mt-3 mb-4">
-      <button
-        :class="['btn', isSelected ? 'btn-secondary' : 'btn-primary']"
-        @click="handleClickModule"
-      >
-        <div :style="{ width: '200px', margin: '-10px', backgroundColor: getModuleColors(requirement) }">
-          <div class="d-flex justify-content-between flex-row">
-            <a v-if="module && module.code" :href="`https://nusmods.com/courses/${module.code}/`" target="_blank" rel="noopener noreferrer" class="text-white" style="font-size: 20px; font-weight: 600;">
-                {{ module.code }}
-            </a>
-
-            <template v-if="isSelectable">
-              <div v-b-tooltip.hover title="Delete">
-                <button @click.stop="handleClickDelete" class="btn btn-danger">
-                  Delete
-                </button>
-              </div>
-            </template>
-            <template v-if="isRevertable">
-              <div v-b-tooltip.hover title="Revert">
-                <button @click.stop="handleClickRevert" class="btn btn-warning">
-                  Revert
-                </button>
-              </div>
-            </template>
-          </div>
-          <p class="mt-3 mb-0 text-white">{{ module.name }}</p>
-        </div>
-      </button>
+  <div class="drop-zones-container">
+    <div class="drop-zone" @drop="onDrop($event,1)" @dragenter.prevent @dragover.prevent>
+      <div class="zone-title">Required Modules</div>
+      <div v-for="item in getList(1)" :key="item.id" class="drag-el" draggable="true" @dragstart="startDrag($event,item)">
+        <span> {{ item.title }}</span>
+      </div>
     </div>
-  </template>
-  
-  <script>
-  // Import Bootstrap CSS for styling
-  import 'bootstrap/dist/css/bootstrap.min.css';
-  
-  export function getModuleColors(requirement) {
-    if (requirement === 'commonModules') {
-      return 'text-primary';  
-    } else if (requirement === 'primaryDegreeModules') {
-      return 'text-danger';  
-    } else if (requirement === 'secondDegreeModules' || requirement === 'secondMajorModules') {
-      return 'text-success';  
-    } else if (requirement === 'minorModules') {
-      return 'text-muted';  
+    <div class="drop-zone" @drop="onDrop($event, 2)" @dragenter.prevent @dragover.prevent>
+      <div class="zone-title">Study Plan</div>
+      <div v-for="item in getList(2)" :key="item.id" class="drag-el" draggable="true" @dragstart="startDrag($event,item)">
+        <span> {{ item.title }}</span>
+        <span class="remove-icon" @click="removeModule(item)">❌</span>
+      </div>
+ 
+
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref } from 'vue'
+
+export default {
+  setup() {
+    const items = ref([
+      { id: 0, title: 'Module A', list: 1 },
+      { id: 1, title: 'Module B', list: 1 },
+      { id: 2, title: 'Module C', list: 2 },
+    ])
+
+    const getList = (list) => {
+      return items.value.filter((item) => item.list === list)
     }
-  } 
-  
-  export default {
-    props: {
-      module: Object,
-      requirement: String,
-      selectedModules: Array,
-      isSelectable: Boolean,
-      isRevertable: Boolean,
-    },
-    methods: {
-      handleClickDelete(event) {
-        event.stopPropagation();
-        this.$emit('delete-module', this.module);
-      },
-      handleClickModule() {
-        if (this.isSelectable) {
-          if (this.isSelected) {
-            this.$emit('deselect-module', this.module);
-          } else {
-            this.$emit('select-module', this.module, this.requirement);
-          }
-        }
-      },
-      handleClickRevert() {
-        if (this.isRevertable) {
-          this.$emit('revert-module', this.module, this.requirement);
-        }
-      },
-    },
-    computed: {
-      isSelected() {
-        return (
-          this.isSelectable &&
-          this.selectedModules.some(
-            (selectedModuleObject) =>
-              selectedModuleObject.module.code === this.module.code &&
-              selectedModuleObject.requirement === this.requirement
-          )
-        );
-      },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  </style>
-  
+
+    const startDrag = (event, item) => {
+      event.dataTransfer.dropEffect = 'move'
+      event.dataTransfer.effectAllowed = 'move'
+      event.dataTransfer.setData('itemID', item.id)
+    }
+
+    const onDrop = (event, list) => {
+      const itemID = event.dataTransfer.getData('itemID')
+      const item = items.value.find((item) => item.id === parseInt(itemID))
+      item.list = list
+    }
+
+    const removeModule = (item) => {
+      item.list = 1 // Move the item back to the first list
+    }
+
+    return {
+      getList,
+      onDrop,
+      startDrag,
+      removeModule 
+    }
+  },
+}
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+
+.drop-zones-container {
+  display: flex; 
+}
+
+.drop-zone {
+  flex: 1;  
+  background-color: #ecf0f1;
+  padding: 10px;
+  min-height: 10px;
+  margin: 0 10px;  
+}
+
+.drag-el {
+  position: relative; /* Add relative positioning */
+  display: inline-block; /* Change to inline-block for proper layout */
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.drag-el:hover {
+  background-color: #72A0C1
+}
+.drag-el:hover .remove-icon {
+  display: inline; /* Show remove icon on hover */
+}
+
+.drag-el:last-child {
+  margin-bottom: 0;
+}
+
+.zone-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.remove-icon {
+  font-size: 16px;
+  color: #ff0000; 
+  cursor: pointer; 
+  display:none;
+} 
+</style>
