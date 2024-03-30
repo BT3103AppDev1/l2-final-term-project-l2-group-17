@@ -7,6 +7,65 @@
       </h1>
     </div>
 
+
+    <div v-if="!selectedSemesterId">
+  <button @click="addSemester" class="btn btn-success mt-3">
+    <font-awesome-icon :icon="['fas', 'plus']" /> Add Semester
+  </button>
+
+  <!-- Semester Table -->
+  <div class="mt-3">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Semester</th>
+          <th scope="col">GPA</th>
+          <th scope="col">Workload</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-if="semesters.length" v-for="(semester, index) in semesters" :key="semester.id">
+          <td>{{ semester.name }}</td>
+          <td>{{ semester.grade }}</td>
+          <td>{{ semester.workload }}</td>
+          <td>
+  <button class="btn btn-primary me-2" @click="viewSemester(semester.id)">View / Edit</button>
+  <button class="btn btn-danger" @click="deleteSemester(semester.id)">Delete</button>
+</td>
+
+        </tr>
+        <tr v-else>
+          <td colspan="4" class="text-center"><em>No semesters added yet</em></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal fade" id="addSemesterModal" tabindex="-1" aria-labelledby="addSemesterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addSemesterModalLabel">Add New Semester</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" v-model="newSemesterName" class="form-control" placeholder="e.g. Y1S1">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" @click="confirmAddSemester">Add Semester</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+    <div v-if="selectedSemesterId">
     <form @submit.prevent="addModule">
       <div class="form-group">
         <v-select 
@@ -24,45 +83,60 @@
       </div>
   
       <button type="submit" class="btn btn-primary mt-3 me-3">
-        {{ editingIndex !== null ? 'Edit Module' : 'Add Module' }}
+        {{ editingIndex !== null ? 'Save edit' : 'Add Module' }}
       </button>
       <button v-if="editingIndex !== null" @click="cancelEdit" type="button" class="btn btn-secondary mt-3 me-3">
         Cancel Edit
       </button>
+
+      <button v-if="editingIndex === null" @click="saveSemesterDetails" class="btn btn-success mt-3">
+    Save / Return
+  </button>
     </form>
+
+    
   
-    <div v-if="modules.length > 0" class="mt-4">
-      <h3>Your Modules <font-awesome-icon icon="book" class="me-2" /></h3>
-      <ul class="list-group">
-        <li v-for="(module, index) in modules" :key="index" class="list-group-item d-flex justify-content-between align-items-center">
-          <span>
-            <strong>{{ module.name }}</strong> - Grade: {{ module.grade }}, GPA: {{ gradeToGpa[module.grade].toFixed(1) }}, Credits: {{ module.credits }}
-          </span>
-          <div>
-            <button @click="editModule(index)" class="btn btn-primary btn-sm me-3">
-              Edit
-              <font-awesome-icon icon="edit" />
-            </button>
-            <button @click="deleteModule(index)" class="btn btn-danger btn-sm">
-              Delete
-              <font-awesome-icon icon="trash" />
-            </button>
-          </div>
+    <div class="mt-4">
+    <h3>Your Modules <font-awesome-icon icon="book" class="me-2" /></h3>
+    <ul class="list-group">
+        <!-- Conditionally render modules list or a message if there are no modules -->
+        <li v-if="modules.length === 0" class="list-group-item">
+            No modules added yet.
         </li>
-      </ul>
-      <h4 class="mt-3">Your GPA: {{ calculatedGPA.toFixed(2) }}</h4>
-      <h4>Total MCs taken: {{ calculatedCredits }}</h4>
-    </div>
+        <li v-else v-for="(module, index) in modules" :key="index" class="list-group-item d-flex justify-content-between align-items-center">
+            <span>
+                <strong>{{ module.name }}</strong> - Grade: {{ module.grade }}, GPA: {{ gradeToGpa[module.grade].toFixed(1) }}, Credits: {{ module.credits }}
+            </span>
+            <div>
+                <button @click="editModule(index)" class="btn btn-primary btn-sm me-3">
+                    Edit
+                    <font-awesome-icon icon="edit" />
+                </button>
+                <button @click="deleteModule(index)" class="btn btn-danger btn-sm">
+                    Delete
+                    <font-awesome-icon icon="trash" />
+                </button>
+            </div>
+        </li>
+    </ul>
+    <h4 class="mt-4"><strong>Semester: {{ getSelectedSemesterName }}</strong></h4>
+
+    <h4>Your GPA: {{ calculatedGPA.toFixed(2) }}</h4>
+    <h4>Total MCs taken: {{ calculatedCredits }}</h4>
+</div>
+
   </div>
+</div>
 </template>
 
 <script>
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faCalculator, faTrash, faEdit, faBook } from '@fortawesome/free-solid-svg-icons';
-library.add(faCalculator, faTrash, faEdit, faBook);
+import { faCalculator, faTrash, faEdit, faBook, faPlus } from '@fortawesome/free-solid-svg-icons';
+library.add(faCalculator, faTrash, faEdit, faBook, faPlus);
 import VueSelect from 'vue-select';
 import 'vue-select/dist/vue-select.css';
+import { Modal } from 'bootstrap';
 
 export default {
   components: {
@@ -71,13 +145,22 @@ export default {
   },
   data() {
     return {
+      selectedSemesterId: null,
       selectedModule: null,
       modules: [],
       test_modules: [],
+      semesters: [],
       newModule: {
         name: '',
         grade: '',
         credits: ''
+      },
+      newSemester: {
+        id: '',
+        name: '',
+        modules: [],
+        workload: '',
+        grade: ''
       },
       gradeToGpa: {
         'A+': 5.0,
@@ -93,7 +176,6 @@ export default {
         'F': 0,
         'S': 0
       },
-      modularCredits: [2, 4, 8],
       editingIndex: null,
     };
   },
@@ -101,6 +183,75 @@ export default {
     await this.fetchModules();
   },
   methods: {
+    deleteSemester(semesterId) {
+    const userConfirmed = confirm("Are you sure you want to delete this semester?");
+    if (userConfirmed) {
+      this.semesters = this.semesters.filter(semester => semester.id !== semesterId);
+
+      if (this.selectedSemesterId === semesterId) {
+        this.selectedSemesterId = null;
+      }
+    }
+  },
+
+    saveSemesterDetails() {
+      const userConfirmed = confirm("Are you sure you want to save the changes?");
+    if (!userConfirmed) {
+      return;
+    }
+  const semesterIndex = this.semesters.findIndex(s => s.id === this.selectedSemesterId);
+  if (semesterIndex === -1) return; 
+
+  let totalCredits = 0;
+  let totalPoints = 0;
+  this.modules.forEach(module => {
+    const gradePoint = this.gradeToGpa[module.grade];
+    totalCredits += module.credits;
+    totalPoints += gradePoint * module.credits;
+  });
+
+  const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 0;
+  const workload = totalCredits;
+
+  this.semesters[semesterIndex] = {
+    ...this.semesters[semesterIndex],
+    grade: this.calculatedGPA.toFixed(2),
+    workload: this.calculatedCredits,
+    modules: this.modules, 
+  };
+
+  this.selectedSemesterId = null;
+  this.modules = [];
+  this.editingIndex = null;
+},
+    addSemester() {
+      const modalElement = document.getElementById('addSemesterModal');
+      const modal = new Modal(modalElement);
+      modal.show();
+    },
+  confirmAddSemester() {
+    if (this.newSemesterName.trim()) {
+      const newId = this.semesters.length + 1;
+      const newSemester = {
+        id: newId,
+        name: this.newSemesterName,
+        modules: [],
+        workload: 'N.A',
+        grade: 'N.A'
+      };
+      this.semesters.push(newSemester);
+      this.newSemesterName = ''; 
+
+      const modal = bootstrap.Modal.getInstance(document.getElementById('addSemesterModal'));
+      modal.hide();
+    } else {
+      alert("Please enter a semester name.");
+    }
+  },
+  viewSemester(semesterId) {
+    this.selectedSemesterId = semesterId;
+    this.modules = this.semesters.find(s => s.id === semesterId)?.modules || [];
+  },
     addModule() {
       if (this.editingIndex !== null) {
         if (confirm("Are you sure you want to edit this module?")) {
@@ -149,6 +300,12 @@ export default {
     },
   },
   computed: {
+    getSelectedSemesterName() {
+    // Find the selected semester object by its ID
+    const selectedSemester = this.semesters.find(semester => semester.id === this.selectedSemesterId);
+    // Return the name of the selected semester if found, otherwise return an empty string or a placeholder text
+    return selectedSemester ? selectedSemester.name : 'No semester selected';
+  },
     calculatedGPA() {
       let totalPoints = 0;
       let totalCredits = 0;
