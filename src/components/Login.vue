@@ -1,12 +1,39 @@
-  <template>
-    <div>
-      <h2>Login</h2>
-      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div> <!-- Error message display -->
-      <input type="email" v-model="email" placeholder="Email">
-      <input type="password" v-model="password" placeholder="Password">
-      <button @click="login">Login</button>
+<template>
+<div class="col-12">
+      <!-- Logo Image in the top left corner -->
+      <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo mb-3" />
     </div>
-  </template>
+  <div class="container mt-3">
+  <div class="row">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-body">
+          <h2 class="card-title text-center mb-4">Login</h2>
+            <form @submit.prevent="login">
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" v-model="email" required placeholder="Enter your email">
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" v-model="password" required placeholder="Enter your password">
+              </div>
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Log In</button>
+              </div>
+            </form>
+            <p class="mt-3 text-center">
+              Don't have an account? <router-link to="/signup">Register here.</router-link><br>
+              Forgot your password? <router-link to="/forgot-password">Reset it here.</router-link>
+            </p>
+          </div>
+      </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
   <script>
   import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
@@ -55,11 +82,11 @@
   };
   </script>
 
-<style>
-/* Your existing styles */
-.error-message {
-  color: red;
-  margin-bottom: 10px;
+<style scoped>
+.logo {
+  max-width: 200px; 
+  display: block; 
+  margin-left: 15px;
+  margin-top: 15px; 
 }
 </style>
-
