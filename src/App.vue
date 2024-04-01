@@ -8,9 +8,22 @@
   </header>
 
   <main>
-    <TheWelcome />
+    <CommunityPage />
   </main>
 </template>
+
+<script>
+import CommunityPage from './components/CommunityPage.vue';
+import CreatePostModal from './components/CreatePostModal.vue'
+
+export default {
+  name: 'App',
+  components: {
+    CommunityPage,
+  }
+};
+</script>
+
 
 <style scoped>
 header {
