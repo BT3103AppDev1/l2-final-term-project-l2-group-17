@@ -1,42 +1,36 @@
-<script setup></script>
-
 <template>
-  <header>
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  <div id="app" class="container">
+    <header class="row align-items-center" style="padding-top: 30px">
+      <div class="col-auto">
+        <img src="./assets/modunus_logo.jpeg" alt="Logo" class="logo" />
+      </div>
+      <div class="col">
+        <MajorSelectDropdown />
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary">Load Course Requirements</button>
+      </div>
+    </header>
+  </div>
+  <ModuleBox />
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
+<style>
 .logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+  max-width: 150px;
+  height: auto;
 }
 </style>
+
+<script>
+import ModuleBox from "./components/ModuleBox.vue";
+import MajorSelectDropdown from "./components/MajorSelectDropdown.vue";
+
+export default {
+  name: "App",
+  components: {
+    ModuleBox,
+    MajorSelectDropdown,
+  },
+};
+</script>
