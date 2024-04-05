@@ -22,6 +22,7 @@
               <th scope="col">GPA</th>
               <th scope="col">Workload</th>
               <th scope="col">Actions</th>
+              <th scope="col"> S/U Reccomendations</th>
             </tr>
           </thead>
           <tbody>
@@ -33,6 +34,7 @@
                 <button class="btn btn-primary me-2" @click="viewSemester(semester.id)">View / Edit</button>
                 <button class="btn btn-danger" @click="deleteSemester(semester.id)">Delete</button>
               </td>
+              <td style="text-align: left;"><button @click="prepareSURRecommendations(semester)" class="btn btn-primary me-2">Show</button> </td>
             </tr>
             <tr v-else>
               <td colspan="4" class="text-center"><em>No semesters added yet</em></td>
@@ -51,15 +53,39 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <input type="text" v-model="newSemesterName" class="form-control" placeholder="e.g. Y1S1">
+              <input type="text" v-model="newSemesterName" class="form-control" placeholder="e.g. Y1S1" @keyup.enter="confirmAddSemester">
             </div>
             <div class="modal-footer">
+              <button type="button" id="closeModalButton" data-bs-dismiss="modal" hidden></button>
               <button type="button" class="btn btn-primary" @click="confirmAddSemester">Add Semester</button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="suRecommendationsModal" tabindex="-1" aria-labelledby="suRecommendationsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="suRecommendationsModalLabel">S/U Recommendations</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul v-if="currentSURRecommendations.length > 0">
+          <li v-for="module in currentSURRecommendations" :key="module.id">
+            <strong>{{ module.name }}</strong> - Original Grade: {{ module.grade }}
+          </li>
+        </ul>
+        <div v-else>
+          Nothing to Recommend
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
     <div v-if="selectedSemesterId">
       <form @submit.prevent="addModule">
@@ -77,16 +103,14 @@
             <option v-for="(value, key) in gradeToGpa" :key="key" :value="key">{{ key }}</option>
           </select>
         </div>
-
+        <button v-if="editingIndex === null" @click="saveSemesterDetails" class="btn btn-success mt-3 me-3">
+          Save / Return
+        </button>
         <button type="submit" class="btn btn-primary mt-3 me-3">
           {{ editingIndex !== null ? 'Save edit' : 'Add Module' }}
         </button>
         <button v-if="editingIndex !== null" @click="cancelEdit" type="button" class="btn btn-secondary mt-3 me-3">
           Cancel Edit
-        </button>
-
-        <button v-if="editingIndex === null" @click="saveSemesterDetails" class="btn btn-success mt-3">
-          Save / Return
         </button>
       </form>
 
@@ -143,6 +167,7 @@ export default {
   },
   data() {
     return {
+      currentSURRecommendations: [],
       selectedSemesterId: null,
       selectedModule: null,
       modules: [],
@@ -151,7 +176,8 @@ export default {
       newModule: {
         name: '',
         grade: '',
-        credits: ''
+        credits: '',
+        su:''
       },
       newSemesterName: '', 
       gradeToGpa: {
@@ -182,8 +208,23 @@ export default {
         console.log('No user is signed in.');
       }
     });
+    console.log(this.formattedModules)
   },
   methods: {
+    prepareSURRecommendations(semester) {
+    const overallGPA = this.totalCalculations.totalGPA;
+    console.log(semester.modules)
+    this.currentSURRecommendations = semester.modules.filter(module => {
+      return module.su && this.gradeToGpa[module.grade] < overallGPA && module.grade !== 'S';
+    });
+    this.showSURRecommendationsModal();
+  },
+  showSURRecommendationsModal() {
+  const recommendationsModalElement = document.getElementById('suRecommendationsModal');
+  const recommendationsModal = new Modal(recommendationsModalElement);
+  recommendationsModal.show();
+},
+
     async loadUserData() {
       const auth = getAuth();
       const db = getFirestore();
@@ -199,7 +240,6 @@ export default {
           console.log("No user data found");
         }
       }
-      console.log(this.semesters[0].modules);
     },
     async saveUserData() {
       const auth = getAuth();
@@ -223,10 +263,6 @@ export default {
       }
     },
     async saveSemesterDetails() {
-      const userConfirmed = confirm("Are you sure you want to save the changes?");
-      if (!userConfirmed) {
-        return;
-      }
       const semesterIndex = this.semesters.findIndex(s => s.id === this.selectedSemesterId);
       if (semesterIndex === -1) return;
 
@@ -255,7 +291,7 @@ export default {
       const modal = new Modal(modalElement);
       modal.show();
     },
-    async confirmAddSemester() {
+    confirmAddSemester() {
       if (this.newSemesterName.trim()) {
         const newId = this.semesters.length + 1;
         const newSemester = {
@@ -268,11 +304,14 @@ export default {
         this.semesters.push(newSemester);
         this.newSemesterName = '';
 
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addSemesterModal'));
-        modal.hide();
+       
       } else {
         alert("Please enter a semester name.");
       }
+      this.$nextTick(() => {
+    document.getElementById('closeModalButton').click();
+  });
+
 
     },
     viewSemester(semesterId) {
@@ -290,6 +329,7 @@ export default {
       } else {
         this.newModule.credits = parseInt(this.selectedModule.credits, 10) || 0;
         this.newModule.name = this.selectedModule.label;
+        this.newModule.su = this.selectedModule.su;
         this.modules.push({ ...this.newModule });
       }
       this.newModule = { name: '', grade: '', credits: '' };
@@ -350,7 +390,8 @@ export default {
       return this.test_modules.map(module => ({
         label: module.moduleCode,
         value: module.moduleCode,
-        credits: module.moduleCredit
+        credits: module.moduleCredit,
+        su: module.attributes ? module.attributes.su : false
       }));
     },
     totalCalculations() {
