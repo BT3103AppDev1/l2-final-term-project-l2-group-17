@@ -1,10 +1,10 @@
 <template>
-  <!-- Logo Image -->
-    <div class="text-start mb-4">
-    <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo" />
-  </div>
-  <div class="container mt-3">
   <div class="container py-5">
+    <!-- Logo Image -->
+    <div class="text-center mb-4">
+      <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo" />
+    </div>
+
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <div class="card">
@@ -100,13 +100,11 @@
                 <button type="submit" class="btn btn-primary" :disabled="!isFormComplete">Sign Up</button>
               </div>
             </form>
-
+            
             <p class="text-center mt-3">
               Already have an account? <router-link to="/login">Login here.</router-link>
             </p>
-            
           </div>
-        </div>
         </div>
       </div>
     </div>

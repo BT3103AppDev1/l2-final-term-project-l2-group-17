@@ -1,9 +1,11 @@
 <template>
-<div>
-    <!-- Logo Image -->
-    <div class="text-start mb-4">
+  <div class="container mt-5">
+    <!-- Logo at the top left -->
+    <div class="navbar">
       <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo" />
     </div>
+
+    <!-- Reset Password Card -->
     <div class="row justify-content-center">
       <div class="col-md-6">
         <div class="card shadow">
@@ -15,7 +17,7 @@
                 <input type="email" class="form-control" id="email" v-model="email" required placeholder="Enter your email">
               </div>
               <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Reset Password</button>
+                <button type="submit" class="btn btn-primary">Send Reset Email</button>
                 <router-link to="/login" class="btn btn-link">Back to Login</router-link>
               </div>
             </form>
@@ -36,15 +38,15 @@ export default {
     };
   },
   methods: {
-    async resetPassword() {
+    async submitForgotPassword() {
       const auth = getAuth();
       try {
         await sendPasswordResetEmail(auth, this.email);
-        // After successful password reset, navigate to login page
+        alert('Password reset email sent!');
         this.$router.push('/login');
       } catch (error) {
-        // Handle errors
-        console.error(error);
+        console.error('Reset password error:', error);
+        alert('An error occurred while sending reset email.');
       }
     },
   },
@@ -53,9 +55,7 @@ export default {
 
 <style scoped>
 .logo {
-  max-width: 200px; 
-  display: block; 
-  margin-left: 15px;
-  margin-top: 15px; 
+  max-width: 150px;
+  margin-bottom: 1rem;
 }
 </style>
