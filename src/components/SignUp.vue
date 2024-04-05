@@ -113,108 +113,94 @@
 
   
 <script>
-import  firebaseApp  from '../firebase.js';
+import firebaseApp from '../firebase.js';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebase.js';
 import { doc, setDoc } from 'firebase/firestore';
 import { facultyList, majorDict, acadPlanList, majorList } from './constants';
   
-  export default {
-    data() {
-        return {
-        registerInfo: {
-            name: '',
-            NUSId: '',
-            username: '',
-            password: '',
-            confirmPassword: '',
-            email: '',
-            faculty: '',
-            primaryDegree: '',
-            academicPlan: '',
-            secondDegree: '',
-            secondMajor: '',
+export default {
+  data() {
+    return {
+      registerInfo: {
+        name: '',
+        NUSId: '',
+        username: '',
+        password: '',
+        confirmPassword: '',
+        email: '',
+        faculty: '',
+        primaryDegree: '',
+        academicPlan: '',
+        secondDegree: '',
+        secondMajor: '',
+      },
+      facultyList,
+      majorDict,
+      acadPlanList,
+      majorList,
+    };
+  },
+  computed: {
+    isFormComplete() {
+      let formComplete = this.registerInfo.name && this.registerInfo.NUSId &&
+                         this.registerInfo.username && this.registerInfo.password &&
+                         this.registerInfo.email && this.registerInfo.faculty &&
+                         this.registerInfo.primaryDegree && this.registerInfo.academicPlan;
 
-        },
-        isFormComplete: false,
-        facultyList, 
-        majorDict,
-        acadPlanList,
-        majorList,
-        };
-    },
-    methods: {
-      async signUp() {
-        if (!this.isFormComplete) {
-          alert('Please fill in all fields.');
-          return;
-        }
+      if (this.registerInfo.academicPlan === 'Double Degree') {
+        formComplete = formComplete && this.registerInfo.secondDegree;
+      }
+      if (this.registerInfo.academicPlan === 'Double Major') {
+        formComplete = formComplete && this.registerInfo.secondMajor;
+      }
 
-        try {   
-        // Create user with email and password
+      return formComplete;
+    }
+  },
+  methods: {
+    async signUp() {
+      if (!this.isFormComplete) {
+        alert('Please fill in all fields.');
+        return;
+      }
+
+      try {   
         const userCredential = await createUserWithEmailAndPassword(auth, this.registerInfo.email, this.registerInfo.password);
         const user = userCredential.user;
 
-        // Store additional user information in Firestore
         await setDoc(doc(db, 'users', user.uid), {
           name: this.registerInfo.name,
           NUSId: this.registerInfo.NUSId,
           username: this.registerInfo.username,
           email: this.registerInfo.email,
-          // password: this.registerInfo.password,
           faculty: this.registerInfo.faculty,
           primaryDegree: this.registerInfo.primaryDegree,
           academicPlan: this.registerInfo.academicPlan,
           secondDegree: this.registerInfo.secondDegree,
           secondMajor: this.registerInfo.secondMajor,
-          // any other fields?  
         });
+
         alert('Registration successful!');
-        // this.$router.push('/Home');
+        this.$router.push('/home');
       } catch (error) {
         const errorCode = error.code;
         const errorMessage = error.message;
         alert(`Error ${errorCode}: ${errorMessage}`);
       }
     },
-        
-      handleAcademicPlanChange() {
-        if (this.registerInfo.academicPlan !== 'Double Degree') {
+    handleAcademicPlanChange() {
+      if (this.registerInfo.academicPlan !== 'Double Degree') {
         this.registerInfo.secondDegree = '';
-        }
-        if (this.registerInfo.academicPlan !== 'Double Major') {
-          this.registerInfo.secondMajor = '';
-        }
-        // Revalidate the form
-        this.validateForm();
-      },
-      validateForm() {
-      // Start with checking the general and account information fields
-      this.isFormComplete = this.registerInfo.name && this.registerInfo.NUSId &&
-                            this.registerInfo.username && this.registerInfo.password &&
-                            this.registerInfo.email && this.registerInfo.faculty &&
-                            this.registerInfo.primaryDegree && this.registerInfo.academicPlan;
-      
-      // Check for additional conditions based on academic plan
-      if (this.registerInfo.academicPlan === 'Double Degree') {
-        this.isFormComplete = this.isFormComplete && this.registerInfo.secondDegree;
       }
-      if (this.registerInfo.academicPlan === 'Double Major') {
-        this.isFormComplete = this.isFormComplete && this.registerInfo.secondMajor;
+      if (this.registerInfo.academicPlan !== 'Double Major') {
+        this.registerInfo.secondMajor = '';
       }
     },
   },
-
-  watch: {
-      registerInfo: {
-      handler() {
-          this.isFormComplete = Object.values(this.registerInfo).every((value) => value !== '');
-      },
-      deep: true,
-      },
-  },
 };
 </script>
+
 
 <style scoped>
 .logo {
