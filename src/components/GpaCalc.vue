@@ -124,6 +124,9 @@ import { faCalculator, faTrash, faEdit, faBook, faPlus } from '@fortawesome/free
 import VueSelect from 'vue-select';
 import 'vue-select/dist/vue-select.css';
 import { Modal } from 'bootstrap';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+
 
 // Adding icons to the library
 library.add(faCalculator, faTrash, faEdit, faBook, faPlus);
@@ -165,8 +168,47 @@ export default {
   },
   async mounted() {
     await this.fetchModules();
+    this.loadUserData();
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, log user details here
+        console.log(user);
+      } else {
+        // No user is signed in.
+        console.log('No user is signed in.');
+      }
+    });
   },
   methods: {
+    async loadUserData() {
+      const auth = getAuth();
+      const db = getFirestore();
+      const user = auth.currentUser;
+      
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          this.modules = userData.modules || [];
+          this.semesters = userData.semesters || [];
+        } else {
+          console.log("No user data found");
+        }
+      }
+    },
+    async saveUserData() {
+      const auth = getAuth();
+      const db = getFirestore();
+      const user = auth.currentUser;
+
+      if (user) {
+        await setDoc(doc(db, "users", user.uid), {
+          modules: this.modules,
+          semesters: this.semesters
+        });
+      }
+    },
     deleteSemester(semesterId) {
       const userConfirmed = confirm("Are you sure you want to delete this semester?");
       if (userConfirmed) {
@@ -208,7 +250,7 @@ export default {
       const modal = new Modal(modalElement);
       modal.show();
     },
-    confirmAddSemester() {
+    async confirmAddSemester() {
       if (this.newSemesterName.trim()) {
         const newId = this.semesters.length + 1;
         const newSemester = {
@@ -226,6 +268,7 @@ export default {
       } else {
         alert("Please enter a semester name.");
       }
+      await this.saveUserData();
     },
     viewSemester(semesterId) {
       this.selectedSemesterId = semesterId;
