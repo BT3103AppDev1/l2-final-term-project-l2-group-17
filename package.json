@@ -9,12 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@mui/icons-material": "^5.15.14",
-    "@mui/material": "^5.15.14",
+    "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@fortawesome/free-solid-svg-icons": "^6.5.1",
+    "@fortawesome/vue-fontawesome": "^3.0.6",
     "bootstrap": "^5.3.3",
-    "bootstrap-vue": "^2.23.1",
     "vue": "^3.4.21",
-    "vuedraggable": "^2.24.3"
+    "vue-select": "^4.0.0-beta.6"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
