@@ -1,5 +1,8 @@
 <template>
   <div class="container mt-3">
+    <div class="text-center mb-4">
+      <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo" />
+    </div>
     <div class="d-flex align-items-center">
       <h1 class="mb-3 d-inline-flex align-items-center">
         GPA Calculator
@@ -36,6 +39,8 @@
             </tr>
           </tbody>
         </table>
+        <h4>Overall GPA: {{ totalCalculations.totalGPA.toFixed(2) }}</h4>
+        <h4>Total MCs taken: {{ totalCalculations.totalWorkload }}</h4>
       </div>
 
       <div class="modal fade" id="addSemesterModal" tabindex="-1" aria-labelledby="addSemesterModalLabel" aria-hidden="true">
@@ -128,7 +133,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
 
-// Adding icons to the library
+
 library.add(faCalculator, faTrash, faEdit, faBook, faPlus);
 
 export default {
@@ -172,10 +177,8 @@ export default {
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is signed in, log user details here
         console.log(user);
       } else {
-        // No user is signed in.
         console.log('No user is signed in.');
       }
     });
@@ -196,6 +199,7 @@ export default {
           console.log("No user data found");
         }
       }
+      console.log(this.semesters[0].modules);
     },
     async saveUserData() {
       const auth = getAuth();
@@ -218,7 +222,7 @@ export default {
         }
       }
     },
-    saveSemesterDetails() {
+    async saveSemesterDetails() {
       const userConfirmed = confirm("Are you sure you want to save the changes?");
       if (!userConfirmed) {
         return;
@@ -244,6 +248,7 @@ export default {
       this.selectedSemesterId = null;
       this.modules = [];
       this.editingIndex = null;
+      await this.saveUserData();
     },
     addSemester() {
       const modalElement = document.getElementById('addSemesterModal');
@@ -268,7 +273,7 @@ export default {
       } else {
         alert("Please enter a semester name.");
       }
-      await this.saveUserData();
+
     },
     viewSemester(semesterId) {
       this.selectedSemesterId = semesterId;
@@ -347,8 +352,36 @@ export default {
         value: module.moduleCode,
         credits: module.moduleCredit
       }));
-    }
+    },
+    totalCalculations() {
+    let totalWorkload = 0;
+    let totalGradePoints = 0;
+    let totalCreditsForGPA = 0;
+
+    this.semesters.forEach(semester => {
+      semester.modules.forEach(module => {
+        const credits = module.credits;
+        const grade = module.grade;
+        totalWorkload += credits;
+        if (grade !== 'S') {
+          const gradePoint = this.gradeToGpa[grade] || 0; 
+          totalGradePoints += gradePoint * credits;
+          totalCreditsForGPA += credits;
+        }
+      });
+    });
+    const totalGPA = totalCreditsForGPA > 0 ? totalGradePoints / totalCreditsForGPA : 0;
+
+    return { totalWorkload, totalGPA };
+  }
   }
 }
 </script>
 
+<style scoped>
+.logo {
+  max-width: 200px; 
+  display: block; 
+  margin-top: 15px;  
+}
+</style>
