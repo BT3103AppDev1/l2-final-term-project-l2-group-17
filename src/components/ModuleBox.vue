@@ -1,78 +1,93 @@
 <template>
-  <div class="app-container"> 
-    <div class="left-column">
+  <div class="app-container">  
+    <div class="left-column"> 
       <div class="title">Required Modules</div>
+      <div
+        class="box"
+        @drop="onDrop($event, 1)"
+        @dragenter.prevent
+        @dragover.prevent
+      > 
+        <div
+          v-for="item in getList(1)"
+          :key="item.id"
+          class="module"
+          draggable="true"
+          @dragstart="startDrag($event, item)"
+        >
+          <span> {{ item.title }}</span>
+        </div>
+      </div> 
       <div class="list-group">
         <div
           v-for="(requirement, index) in requirements"
           :key="index"
           class="list-group-item"
-        >
+        > 
           <button
             type="button"
-            class="dropdown-button"
+            class="list-group-item list-group-item-action"
             @click="toggleContent(index)"
           >
-            {{ requirement.name }}
-            <span class="float-end">{{ requirement.showContent ? '▲' : '▼' }}</span>
-          </button>
-          <div v-if="requirement.showContent" class="dropdown-content">
-            {{ requirement.content }}
+            {{ requirement.name }} 
+            <span class="arrow-icon" :class="{ 'rotate': requirement.showContent }"></span>
+          </button> 
+          <div v-if="requirement.showContent" class="dropdown-content"> 
+            {{ getContent(requirement.name) }}
+          </div>
+        </div>
+      </div>
+    </div>  
+    <div class="right-column"> 
+      <div class="year-container">
+        <div class="title">Study Plan</div> 
+        <div class="year-box"> 
+          <div class="subtitle">Year 1</div>
+          <div
+            class="box semester-box"
+            @drop="onDrop($event, 2)"
+            @dragenter.prevent
+            @dragover.prevent
+          >
+            <div class="mc-count">MCs: {{ mcCount(2) }}</div>
+            <div class="subtitle">Semester 1</div>
+            <div
+              v-for="item in getList(2)"
+              :key="item.id"
+              class="module"
+              draggable="true"
+              @dragstart="startDrag($event, item)"
+            >
+              <span> {{ item.title }}</span>
+              <span class="remove-icon" @click="removeModule(item)">❌</span>
+              <span class="mc-indicator">4 MCs</span>
+            </div>
+          </div>
+ 
+          <div
+            class="box semester-box"
+            @drop="onDrop($event, 3)"
+            @dragenter.prevent
+            @dragover.prevent
+          >
+            <div class="mc-count">MCs: {{ mcCount(3) }}</div>
+            <div class="subtitle">Semester 2</div>
+            <div
+              v-for="item in getList(3)"
+              :key="item.id"
+              class="module"
+              draggable="true"
+              @dragstart="startDrag($event, item)"
+            >
+              <span> {{ item.title }}</span>
+              <span class="remove-icon" @click="removeModule(item)">❌</span>
+              <span class="mc-indicator">4 MCs</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    
-    <div class="right-column">
-    <div class="year-container">
-    <div class="title">Study Plan</div>
-    <div class="year-box">
-      <div
-        class="box semester-box"
-        @drop="onDrop($event, 2)"
-        @dragenter.prevent
-        @dragover.prevent
-      >
-        <div class="mc-count">MCs: {{ mcCount(2) }}</div>
-        <div class="title">Semester 1</div>
-        <div
-          v-for="item in getList(2)"
-          :key="item.id"
-          class="module"
-          draggable="true"
-          @dragstart="startDrag($event, item)"
-        >
-          <span> {{ item.title }}</span>
-          <span class="remove-icon" @click="removeModule(item)">❌</span>
-          <span class="mc-indicator">4 MCs</span>
-        </div>
-      </div>
-
-      <div
-        class="box semester-box"
-        @drop="onDrop($event, 3)"
-        @dragenter.prevent
-        @dragover.prevent
-      >
-        <div class="mc-count">MCs: {{ mcCount(3) }}</div>
-        <div class="title">Semester 2</div>
-        <div
-          v-for="item in getList(3)"
-          :key="item.id"
-          class="module"
-          draggable="true"
-          @dragstart="startDrag($event, item)"
-        >
-          <span> {{ item.title }}</span>
-          <span class="remove-icon" @click="removeModule(item)">❌</span>
-          <span class="mc-indicator">4 MCs</span>
-        </div>
-      </div>
-    </div>
   </div>
-</div>
-</div>
-
 </template>
 
 
@@ -118,7 +133,20 @@ export default {
       requirements[index].showContent = !requirements[index].showContent;
     };
 
-    return { getList, startDrag, onDrop, removeModule, mcCount, toggleContent, requirements };
+    const getContent = (requirementName) => {
+      switch (requirementName) {
+        case 'Common Curriculum':
+          return 'Content for Common Curriculum';
+        case 'Unrestricted Electives':
+          return 'Content for Unrestricted Electives';
+        case 'Core Major Modules':
+          return 'Content for Core Major Modules';
+        default:
+          return '';
+      }
+    };
+
+    return { getList, startDrag, onDrop, removeModule, mcCount, toggleContent, getContent, requirements };
   },
 };
 </script>
@@ -148,6 +176,8 @@ export default {
   font-size: 20px;
   font-weight: bold;
   top: 5px;
+  
+
 }
 .module:hover {
   background-color: #72a0c1;
@@ -165,8 +195,8 @@ export default {
   color: #ff0000;
   cursor: pointer;
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 5px;
+  right: 5px;
 }
 
 .year-container {
@@ -176,22 +206,35 @@ export default {
 
 .year-box {
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
 }
+
 .semester-box {
+  flex: 1;
   margin: 0 10px;
   padding: 80px;
   border: 2px dashed #ccc;  
   min-height: 200px;  
 }
-.mc-indicator {
+
+.mc-indicator { 
   position: absolute;
   bottom: 5px;
   right: 5px;
   font-size: 12px;
 }
 
+.mc-count {
+  text-align: center;
+}
+
 .title {
-  text-align: left;
+  text-align: center;
   font-size: 30px;
   padding-left: 90px;
   padding-top: 30px;
@@ -217,43 +260,26 @@ export default {
   width: 100%;
   padding: 10px;
 }
-
-.dropdown-button {
-  background-color: #f9f9f9;
-  color: black;
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
+.subtitle {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
-.dropdown-button:hover, .dropdown-button:focus {
-  background-color: #ddd;
-}
+.arrow-icon {
 
-.dropdown-content {
-  display: none;
-  position: static;
-  background-color: #f1f1f1;
-  min-width: 160px;
-  overflow: auto;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-}
-
-.dropdown-content.show {
-  display: block;
-}
-
-.list-group-item {
-  border: 1px solid #ddd;
-  margin-top: -1px; /* Prevent double borders */
-}
-
-.float-end {
-  float: right;
-}
-
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 5px;  
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid black;  
+    transition: transform 0.3s;
+  }
+ 
+  .rotate {
+    transform: rotate(180deg);
+  }
 </style>
