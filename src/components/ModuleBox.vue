@@ -2,7 +2,7 @@
   <!-- div containing the required modules -->
   <div class="title">Required Modules</div>
   <div
-    class="box"
+    class="box" 
     @drop="onDrop($event, 1)"
     @dragenter.prevent
     @dragover.prevent
