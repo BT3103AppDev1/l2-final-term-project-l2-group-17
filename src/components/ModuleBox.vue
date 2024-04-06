@@ -2,47 +2,27 @@
   <div class="app-container"> 
     <div class="left-column">
       <div class="title">Required Modules</div>
-      <div
-        class="box"
-        @drop="onDrop($event, 1)"
-        @dragenter.prevent
-        @dragover.prevent
-      >
-        <div
-          v-for="item in getList(1)"
-          :key="item.id"
-          class="module"
-          draggable="true"
-          @dragstart="startDrag($event, item)"
-        >
-          <span> {{ item.title }}</span>
-        </div>
-      </div>
-
       <div class="list-group">
-        <button
+        <div
           v-for="(requirement, index) in requirements"
           :key="index"
-          type="button"
-          class="list-group-item list-group-item-action"
-          @click="toggleContent(index)"
+          class="list-group-item"
         >
-          {{ requirement.name }}
-          <span v-if="!requirement.showContent" class="float-end">See more</span>
-          <span v-else class="float-end">See less</span>
-        </button>
-        <div
-          v-for="(requirement, index) in requirements"
-          :key="'content-' + index"
-          :class="{ expanded: requirement.showContent }"
-        >
-          <div v-if="requirement.showContent">
-            <!-- Content for this requirement -->
+          <button
+            type="button"
+            class="dropdown-button"
+            @click="toggleContent(index)"
+          >
+            {{ requirement.name }}
+            <span class="float-end">{{ requirement.showContent ? '▲' : '▼' }}</span>
+          </button>
+          <div v-if="requirement.showContent" class="dropdown-content">
             {{ requirement.content }}
           </div>
         </div>
       </div>
-    </div> 
+    </div>
+    
     <div class="right-column">
     <div class="year-container">
     <div class="title">Study Plan</div>
@@ -236,6 +216,44 @@ export default {
 .year-container {
   width: 100%;
   padding: 10px;
+}
+
+.dropdown-button {
+  background-color: #f9f9f9;
+  color: black;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-button:hover, .dropdown-button:focus {
+  background-color: #ddd;
+}
+
+.dropdown-content {
+  display: none;
+  position: static;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  overflow: auto;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content.show {
+  display: block;
+}
+
+.list-group-item {
+  border: 1px solid #ddd;
+  margin-top: -1px; /* Prevent double borders */
+}
+
+.float-end {
+  float: right;
 }
 
 </style>
