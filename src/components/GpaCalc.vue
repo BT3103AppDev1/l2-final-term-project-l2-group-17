@@ -373,10 +373,7 @@ export default {
         }
         return false;
       });
-      if (isModuleAdded) {
-        alert(`This module has already been added in ${duplicateSemesterName} and cannot be added again.`);
-        return;
-      }
+      
       if (this.editingIndex !== null) {
         if (confirm("Are you sure you want to edit this module?")) {
           this.modules[this.editingIndex] = { ...this.newModule };
@@ -385,6 +382,10 @@ export default {
           this.saveSemesterDetails(false);
         }
       } else {
+        if (isModuleAdded) {
+        alert(`This module has already been added in ${duplicateSemesterName} and cannot be added again.`);
+        return;
+      }
         this.newModule.credits = parseInt(this.selectedModule.credits, 10) || 0;
         this.newModule.name = this.selectedModule.label;
         this.newModule.su = this.selectedModule.su;
