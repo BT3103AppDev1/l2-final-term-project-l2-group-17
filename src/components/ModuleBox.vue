@@ -95,6 +95,50 @@
 import { ref, reactive } from "vue";
 
 export default {
+
+  data() {
+    return {
+      userFound: false, 
+      noResultsFound: false,
+      searchInitiated: false,
+      offset: 0,
+      limit: 10,
+      searchQuery: '',
+      currentSURRecommendations: [],
+      selectedSemesterId: null,
+      selectedModule: null,
+      modules: [],
+      test_modules: [],
+      semesters: [],
+      newModule: {
+        name: '',
+        grade: '',
+        credits: '',
+        su: ''
+      },
+      newSemesterName: '', 
+      gradeToGpa: {
+        'Pass': 0,
+        'S': 0.0,
+        'A+': 5.0,
+        'A': 5.0,
+        'A-': 4.5,
+        'B+': 4.0,
+        'B': 3.5,
+        'B-': 3.0,
+        'C+': 2.5,
+        'C': 2.0,
+        'D+': 1.5,
+        'D': 1.0,
+        'F': 0,
+      },
+      editingIndex: null,
+    };
+  },
+  async mounted() {
+    await this.fetchModules();
+  },
+
   setup() {
     const items = ref([
       { id: 0, title: "Module A", list: 1, MCs: 4 },
@@ -146,9 +190,26 @@ export default {
       }
     };
 
+    
+
     return { getList, startDrag, onDrop, removeModule, mcCount, toggleContent, getContent, requirements };
   },
-};
+  methods: {
+    async fetchModules() {
+      try {
+        const response = await fetch('https://api.nusmods.com/v2/2023-2024/moduleInfo.json');
+        console.log('fetch success');
+        if (!response.ok) {
+          throw new Error('Failed to fetch modules');
+        }
+        const data = await response.json();
+        this.test_modules = data;
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+}
 </script>
 
 
