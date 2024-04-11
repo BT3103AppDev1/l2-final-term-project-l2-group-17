@@ -57,7 +57,7 @@ export default {
       try {
         const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
         // Signed in
-        this.$router.push('/home'); // route to 'home'
+        this.$router.push('/module-planning'); // route to Module planning
       } catch (error) {
         // Display appropriate error messages
         this.errorMessage = error.message;
