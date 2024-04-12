@@ -3,6 +3,7 @@ import Login from './components/Login.vue';
 import SignUp from './components/SignUp.vue';
 import ForgotPassword from './views/ForgotPassword.vue';
 import Logout from './components/Logout.vue';
+import CommunityPage from './components/CommunityPage.vue';
 // import Home from './views/Home.vue';
 
 const routes = [
@@ -12,6 +13,7 @@ const routes = [
   { path: '/signup', component: SignUp },
   { path: '/forgot-password', component: ForgotPassword },
   { path: '/logout', component: Logout},
+  { path: '/communitypage', component: CommunityPage}
 ];
 
 const router = createRouter({
