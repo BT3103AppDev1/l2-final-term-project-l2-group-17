@@ -17,7 +17,14 @@
               </div>
               <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" v-model="password" required placeholder="Enter your password" autocomplete="current-password">
+                <div class="input-group">
+                  <input :type="passwordFieldType" class="form-control" id="password" v-model="password" required placeholder="Enter your password" autocomplete="current-password">
+                  <span class="input-group-text" @click="togglePasswordVisibility">
+                    <font-awesome-icon :icon="passwordIcon" />
+                  </span>
+                </div>
+                <!-- Error Message -->
+                <div v-if="errorMessage" class="alert alert-danger mt-2">{{ errorMessage }}</div>
               </div>
               <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary">Log In</button>
@@ -34,33 +41,57 @@
   </div>
 </template>
 
+
+
 <script>
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
+library.add(faEye, faEyeSlash);
 
 export default {
+  components: {
+    'font-awesome-icon': FontAwesomeIcon
+  },
   data() {
     return {
       email: '',
       password: '',
       errorMessage: '',
+      isPasswordVisible: false,
     };
   },
+  computed: {
+    passwordFieldType() {
+      return this.isPasswordVisible ? 'text' : 'password';
+    },
+    passwordIcon() {
+      return this.isPasswordVisible ? faEyeSlash : faEye;
+    },
+  },
   methods: {
+    togglePasswordVisibility() {
+      this.isPasswordVisible = !this.isPasswordVisible;
+    },
     async login() {
-      // Check for empty fields first
+      this.errorMessage = '';
       if (!this.email || !this.password) {
         this.errorMessage = 'Please enter both email and password.';
         return;
       }
-
       const auth = getAuth();
       try {
-        const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password);
-        // Signed in
-        this.$router.push('/gpacalc'); 
+
+        await signInWithEmailAndPassword(auth, this.email, this.password);
+        this.$router.push('/module-planning');
       } catch (error) {
-        // Display appropriate error messages
-        this.errorMessage = error.message;
+        if (error.code === 'auth/too-many-requests') {
+          this.errorMessage = 'Access to this account has been temporarily disabled due to many failed login attempts. Please reset your password';
+        } else {
+          this.errorMessage = 'Incorrect email or password, please try again.';
+        }
         console.error('Login error:', error);
       }
     },
@@ -70,9 +101,24 @@ export default {
 
 <style scoped>
 .logo {
-  max-width: 200px; 
-  display: block; 
+  max-width: 200px;
+  display: block;
   margin-left: 15px;
-  margin-top: 15px; 
+  margin-top: 15px;
+}
+.input-group-text {
+  cursor: pointer;
+  background: transparent;
+  border-left: 0;
+  outline: none;
+}
+
+.input-group .form-control {
+  border-right: 0;
+}
+
+.input-group .fa {
+  margin-right: -0.75rem; /* Adjust the value as needed */
 }
 </style>
+

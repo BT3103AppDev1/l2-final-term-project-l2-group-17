@@ -45,8 +45,14 @@ export default {
         alert('Password reset email sent!');
         this.$router.push('/login');
       } catch (error) {
-        console.error('Reset password error:', error);
-        alert('An error occurred while sending reset email.');
+        // Check if the error code is 'auth/user-not-found' and display an appropriate message
+        if (error.code === 'auth/user-not-found') {
+          alert('No user found with this email address.');
+        } else {
+          // For other types of errors, you can log them or display a generic error message
+          console.error('Reset password error:', error);
+          alert('An error occurred while sending reset email.');
+        }
       }
     },
   },
