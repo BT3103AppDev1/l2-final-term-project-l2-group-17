@@ -1,89 +1,131 @@
 <template>
-  <!-- div containing the required modules -->
-  <div class="title">Required Modules</div>
-  <div
-    class="box"
-    @drop="onDrop($event, 1)"
-    @dragenter.prevent
-    @dragover.prevent
-  >
-    <div
-      v-for="item in getList(1)"
-      :key="item.id"
-      class="module"
-      draggable="true"
-      @dragstart="startDrag($event, item)"
-    >
-      <span> {{ item.title }}</span>
-    </div>
-  </div>
+  <!-- split into two left and right columns for the headers !-->
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <!-- content for the left column (required modules)-->
+        <div class="left-aligned-column">
+          <div class="title">Required Modules</div>
 
-  <div class="list-group">
-    <button
-      v-for="(requirement, index) in requirements"
-      :key="index"
-      type="button"
-      class="list-group-item list-group-item-action"
-      @click="toggleContent(index)"
-    >
-      {{ requirement.name }}
-      <span v-if="!requirement.showContent" class="float-end">See more</span>
-      <span v-else class="float-end">See less</span>
-    </button>
-    <div
-      v-for="(requirement, index) in requirements"
-      :key="'content-' + index"
-      :class="{ expanded: requirement.showContent }"
-    >
-      <div v-if="requirement.showContent">
-        <!-- Content for this requirement -->
-        {{ requirement.content }}
-      </div>
-    </div>
-  </div>
-
-  <div class="year-container">
-    <div class="title">Study Plan</div>
-    <div class="year-box">
-      <div
-        class="box semester-box"
-        @drop="onDrop($event, 2)"
-        @dragenter.prevent
-        @dragover.prevent
-      >
-        <div class="mc-count">MCs: {{ mcCount(2) }}</div>
-        <div class="title">Semester 1</div>
-        <div
-          v-for="item in getList(2)"
-          :key="item.id"
-          class="module"
-          draggable="true"
-          @dragstart="startDrag($event, item)"
-        >
-          <span> {{ item.title }}</span>
-          <span class="remove-icon" @click="removeModule(item)">❌</span>
-          <span class="mc-indicator">4 MCs</span>
+          <!-- list of degree requirements and their respective modules !-->
+          <div class="accordion" id="degree-requirements">
+            <div
+              v-for="requirement in requirements"
+              :key="index"
+              class="accordion-item"
+            >
+              <h2 class="accordion-header" :id="'heading' + index">
+                <button
+                  class="accordion-button"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseOne"
+                  aria-expanded="true"
+                  aria-controls="collapseOne"
+                  @click="toggleAccordion(index)"
+                >
+                  {{ requirement }}
+                </button>
+              </h2>
+              <!-- click to toggle the dropdown feature, references array below -->
+              <!-- currently not working for some reason :((( !-->
+              <div
+                :id="'collapse' + index"
+                class="accordion-collapse collapse"
+                :class="{ show: isOpen[index] }"
+              >
+                <div class="accordion-body">
+                  <!-- modules that fall under this category will be included under the heading !-->
+                  <div
+                    @drop="onDrop($event, requirement)"
+                    @dragenter.prevent
+                    @dragover.prevent
+                  >
+                    <div
+                      v-for="item in getList(requirement)"
+                      :key="item.id"
+                      class="module"
+                      draggable="true"
+                      @dragstart="startDrag($event, item)"
+                    >
+                      <span> {{ item.title }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div
-        class="box semester-box"
-        @drop="onDrop($event, 3)"
-        @dragenter.prevent
-        @dragover.prevent
-      >
-        <div class="mc-count">MCs: {{ mcCount(3) }}</div>
-        <div class="title">Semester 2</div>
-        <div
-          v-for="item in getList(3)"
-          :key="item.id"
-          class="module"
-          draggable="true"
-          @dragstart="startDrag($event, item)"
-        >
-          <span> {{ item.title }}</span>
-          <span class="remove-icon" @click="removeModule(item)">❌</span>
-          <span class="mc-indicator">4 MCs</span>
+      <!-- content for the right column (study plan) !-->
+      <div class="col-md-6">
+        <!-- list of modules taken for each semester !-->
+        <div class="left-aligned-column">
+          <!-- header with study plan and plan validation button !-->
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <div class="title">Study Plan</div>
+            </div>
+            <div class="col">
+              <button class="btn btn-secondary">Validate Study Plan</button>
+            </div>
+          </div>
+
+          <!-- module allocation by semester !-->
+          <div class="scrollable-box">
+            <!-- with hidden overflow, scroll to see bottom if content too long !-->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="subheading">Year 1 Semester 1</div>
+                <div
+                  class="semester-box"
+                  @drop="onDrop($event, 11)"
+                  @dragenter.prevent
+                  @dragover.prevent
+                >
+                  <div
+                    v-for="item in getList(11)"
+                    :key="item.id"
+                    class="module"
+                    draggable="true"
+                    @dragstart="startDrag($event, item)"
+                  >
+                    <span> {{ item.title }}</span>
+                    <span class="remove-icon" @click="removeModule(item)"
+                      >❌</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- right inner column is for year 1 semester 2 !-->
+              <!-- code will be neater if we do tabs instead, but idk how the drag n drop might work in that case !-->
+              <div class="col-md-6">
+                <div class="subheading">Year 1 Semester 2</div>
+                <div
+                  class="semester-box"
+                  @drop="onDrop($event, 12)"
+                  @dragenter.prevent
+                  @dragover.prevent
+                >
+                  <div
+                    v-for="item in getList(12)"
+                    :key="item.id"
+                    class="module"
+                    draggable="true"
+                    @dragstart="startDrag($event, item)"
+                  >
+                    <span> {{ item.title }}</span>
+                    <span class="remove-icon" @click="removeModule(item)"
+                      >❌</span
+                    >
+                    <!-- remember to include an MC indicator !-->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -96,41 +138,52 @@ import { ref } from "vue";
 export default {
   data() {
     return {
+      // list of degree requirements for students
       requirements: [
-        {
-          name: "Common Curriculum",
-          content: "Content for Common Curriculum",
-          showContent: false,
-        },
-        {
-          name: "Unrestricted Electives",
-          content: "Content for Unrestricted Electives",
-          showContent: false,
-        },
-        {
-          name: "Core Major Modules",
-          content: "Content for Core Major Modules",
-          showContent: false,
-        },
-        // Add more requirements as needed
+        "Common Curriculum Requirements",
+        "Unrestricted Electives",
+        "Programme Requirements",
+        "Programme Electives",
       ],
+
+      isOpen: Array.from({ length: 4 }).fill(false), // keeps track of which accordion (degree requirement) is open or closed
     };
   },
+
   methods: {
-    toggleContent(index) {
-      this.requirements[index].showContent =
-        !this.requirements[index].showContent;
+    toggleAccordion(index) {
+      this.isOpen[index] = !this.isOpen[index]; // toggle the accordion open and closed
     },
   },
+
   setup() {
+    // separate list of modules grouped based on their requirement category
     const items = ref([
-      { id: 0, title: "Module A", list: 1, MCs: 4 },
-      { id: 1, title: "Module B", list: 1, MCs: 4 },
-      { id: 2, title: "Module C", list: 2, MCs: 4 },
+      { id: 0, title: "Module A", req: "CC", MCs: 4 },
+      { id: 1, title: "Module B", req: "UE", MCs: 4 },
+      { id: 2, title: "Module C", req: "CC", MCs: 4 },
+      { id: 3, title: "Module D", req: "PR", MCs: 4 },
+      // for the last one im just testing if the getList() is working properly
+      { id: 4, title: "Module E", req: "Y1S1", MCs: 4 },
     ]);
 
-    const getList = (list) => {
-      return items.value.filter((item) => item.list === list);
+    const getList = (req) => {
+      if (req === "Common Curriculum Requirements") {
+        return items.value.filter((item) => item.req === "CC");
+      } else if (req === "Unrestricted Electives") {
+        return items.value.filter((item) => item.req === "UE");
+      } else if (req === "Programme Requirements") {
+        return items.value.filter((item) => item.req === "PR");
+      } else if (req === "Programme Electives") {
+        return items.value.filter((item) => item.req === "PE");
+      } else if (req === 11) {
+        // omg help idk how else to do this ik it looks abit dumb
+        return items.value.filter((item) => item.req === "Y1S1");
+      } else if (req === 12) {
+        return items.value.filter((item) => item.req === "Y1S2");
+      } else if (req === 21) {
+        return items.value.filter((item) => item.req === "Y2S1");
+      }
     };
 
     const startDrag = (event, item) => {
@@ -139,20 +192,16 @@ export default {
       event.dataTransfer.setData("itemID", item.id);
     };
 
-    const onDrop = (event, list) => {
+    const onDrop = (event, req) => {
       const itemID = event.dataTransfer.getData("itemID");
       const item = items.value.find((item) => item.id === parseInt(itemID));
-      if (item.list !== list) {
-        item.list = list;
+      if (item.req !== req) {
+        item.req = req;
       }
     };
 
     const removeModule = (item) => {
-      item.list = 1; // Move the item back to the first list
-    };
-
-    const mcCount = (list) => {
-      return getList(list).reduce((total, item) => total + item.MCs, 0);
+      item.list = 1; // move the item back to the first list
     };
 
     return {
@@ -160,23 +209,39 @@ export default {
       onDrop,
       startDrag,
       removeModule,
-      mcCount,
     };
   },
 };
 </script>
 
 <style>
+.container {
+  padding: 10px;
+}
+
+.semester-box {
+  margin: 0 10px;
+  padding: 80px;
+}
+
+.title {
+  text-align: left;
+  font-weight: bold;
+  font-size: 30px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+}
+
+.subheading {
+  text-align: left;
+  font-weight: bold;
+  font-size: 20px;
+}
+
 .req-modules {
   display: flex;
 }
 
-.box {
-  padding: 10px;
-  min-height: 10px;
-  margin: 0 10px;
-  width: calc(50% - 20px);
-}
 .module {
   position: relative;
   display: inline-block;
@@ -184,6 +249,7 @@ export default {
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 30px 40px;
+  margin-top: 10px;
   margin-bottom: 20px;
   margin-right: 20px;
   cursor: pointer;
@@ -191,9 +257,11 @@ export default {
   font-weight: bold;
   top: 5px;
 }
+
 .module:hover {
   background-color: #72a0c1;
 }
+
 .module:hover .remove-icon {
   display: inline;
 }
@@ -211,37 +279,23 @@ export default {
   right: 10px;
 }
 
-.year-container {
-  width: 50%;
-  padding: 10px;
-}
-
-.year-box {
-  display: flex;
-}
-
-.semester-box {
-  margin: 0 10px;
-  padding: 80px;
-}
-
-.mc-indicator {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  font-size: 12px;
-}
-
-.title {
+.left-aligned-column {
   text-align: left;
-  font-size: 30px;
-  padding-left: 90px;
-  padding-top: 30px;
-  font-weight: bold;
-  margin-bottom: 10px;
+  padding-right: 20px;
 }
 
-.expanded {
-  height: auto !important;
+.scrollable-box {
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.scrollable-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-box::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 4px;
 }
 </style>
