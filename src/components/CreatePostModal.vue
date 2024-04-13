@@ -1,114 +1,124 @@
 <template>
-    <div class="modal" tabindex="-1" id="createPostModalRef" ref="createPostModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">New Post</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="closeModal"></button>
+  <div class="modal" tabindex="-1" id="createPostModalRef" ref="createPostModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Post</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @click="hideModal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="postTitle" class="form-label">Post Title</label>
+            <input type="text" class="form-control" id="postTitle" v-model="postTitle">
           </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="postTitle" class="form-label">Post Title</label>
-              <input type="text" class="form-control" id="postTitle" v-model="postTitle">
-            </div>
-            <!-- Add more form fields here -->
+          <div class="mb-3">
+            <label for="postCategory" class="form-label">Category</label>
+            <select id="postCategory" class="form-select" v-model="postCategory">
+              <option value="study guide">Study Guide</option>
+              <option value="module review">Module Review</option>
+            </select>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" @click="submitPost">Create Post</button>
+          <div class="mb-3">
+            <label for="postContent" class="form-label">Content</label>
+            <textarea id="postContent" class="form-control" v-model="postContent" rows="4"></textarea>
           </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" @click="submitPost">Create Post</button>
         </div>
       </div>
     </div>
-  </template>
-  
-  <!-- <script>
-  import { ref } from 'vue';
-  import axios from 'axios';
-  
-  export default {
-    name: 'CreatePostModal',
-    setup() {
-      const postTitle = ref('');
-      // Other form fields like postCategory, formContent, selectedMajor etc. will be declared here
-      // ...
-  
-      const submitPost = async () => {
-        if (!validateForm()) {
-          alert('Please fill in all required fields.');
-          return;
-        }
-        
-        // Construct the form data
-        const formData = {
-          title: postTitle.value,
-          // Include other data fields similar to the React component
-        };
-  
-        try {
-          const response = await axios.post('/your-post-api-endpoint', formData);
-          console.log(response.data);
-          // Handle the success response, close modal, and refresh page or redirect
-        } catch (error) {
-          console.error('There was an error uploading the post:', error);
-          // Handle errors here
-        }
-      };
-  
-      const validateForm = () => {
-        // Perform validation checks here
-        // Return true if form is valid, false otherwise
-      };
-  
-      const closeModal = () => {
-        const modalEl = this.$refs.createPostModal;
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-      };
-  
-      return {
-        postTitle,
-        submitPost,
-        closeModal
-      };
-    }
-  };
-  </script> -->
+  </div>
+</template>
 
-  <script>
-  import { ref, onMounted } from 'vue';
-  import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min';
-  
-  export default {
-    name: 'CreatePostModal',
-    setup() {
-      const postTitle = ref('');
-  
-      // It's better to define showModal and hideModal methods to manage modal visibility
-      let modalInstance = null;
-      
-      const showModal = () => {
-        if (modalInstance) {
-          modalInstance.show();
-        }
+<script>
+import { ref, onMounted } from 'vue';
+import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min';
+import { db, auth } from '../firebase';
+import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+
+export default {
+  name: 'CreatePostModal',
+  setup() {
+    const postTitle = ref('');
+    const postCategory = ref('study guide');
+    const postContent = ref('');
+    const currentUser = ref(null);
+    const userDetails = ref({});
+
+    let modalInstance = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser.value = user;
+        await fetchUserDetails(user.uid); 
+      } else {
+      }
+    });
+
+    const fetchUserDetails = async (userId) => {
+      const userRef = doc(db, "users", userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        userDetails.value = userSnap.data();
+      } else {
+        console.error("No such user!");
+      }
+    };
+
+    const showModal = () => {
+      if (modalInstance) {
+        modalInstance.show();
+      }
+    };
+
+    const hideModal = () => {
+      if (modalInstance) {
+        modalInstance.hide();
+      }
+    };
+
+    const submitPost = async () => {
+      if (!currentUser.value) {
+        console.error("No authenticated user");
+        return;
+      }
+      const postData = {
+        title: postTitle.value,
+        category: postCategory.value,
+        content: postContent.value,
+        userId: currentUser.value.uid,
+        userName: userDetails.value.username,  
+        timestamp: new Date(),
+        likes: {}
       };
-  
-      const hideModal = () => {
-        if (modalInstance) {
-          modalInstance.hide();
-        }
+
+      try {
+        const docRef = await addDoc(collection(db, "posts"), postData);
+        console.log("Document written with ID: ", docRef.id);
+        hideModal();  
+      } catch (e) {
+        console.error("Error adding document: ", e);
       };
-  
-      onMounted(() => {
-        const modalEl = document.getElementById('createPostModalRef'); // Make sure the ID matches
-        modalInstance = new bootstrap.Modal(modalEl);
-      });
-  
-      return {
-        postTitle,
-        showModal,
-        hideModal
-      };
-    },
-  };
-  </script>
-  
+
+      hideModal();
+    };
+
+    onMounted(() => {
+      const modalEl = document.getElementById('createPostModalRef');
+      modalInstance = new bootstrap.Modal(modalEl);
+    });
+
+    return {
+      postTitle,
+      postCategory,
+      postContent,
+      showModal,
+      hideModal,
+      submitPost
+    };
+  },
+};
+
+</script>

@@ -7,6 +7,7 @@ import Login from './components/Login.vue';
 import SignUp from './components/SignUp.vue';
 import ForgotPassword from './components/ForgotPassword.vue';
 import Logout from './components/Logout.vue';
+
 import ModuleBox from './components/ModuleBox.vue';
 import CommunityPage from './components/CommunityPage.vue';
 import GPACalculator from './components/GpaCalc.vue';
@@ -21,6 +22,7 @@ const routes = [
   { path: '/gpa-calculator', component: GPACalculator, meta: { requiresAuth: true }},
   { path: '/module-planning', component: ModuleBox, meta: { requiresAuth: true }},
   { path: '/community-page', component: CommunityPage, meta: { requiresAuth: true }},
+
 ];
 
 const router = createRouter({

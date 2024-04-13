@@ -2,7 +2,6 @@
     <div class="community-header">
       <div class="container text-center text-md-start">
         <div class="row align-items-center">
-          <!-- Text Section -->
           <div class="col-md-7">
             <h1 class="display-5 fw-bold">The best study resources.</h1>
             <p class="lead">By you, for you.</p>
@@ -10,7 +9,6 @@
                 <i class="bi bi-plus-lg"></i> Make your post today
             </button>
           </div>
-          <!-- Image Section -->
           <div class="col-md-5 d-none d-md-block">
             <img src="../../assets/learning_icon.png" alt="Learning Icon" class="img-fluid">
           </div>
