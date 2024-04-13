@@ -1,7 +1,7 @@
 <template>
-  <div class="container mt-5">
-    <!-- Logo at the top left -->
-    <div class="navbar">
+  <div class="container py-5">
+    <!-- Logo Image -->
+    <div class="text-center mb-4">
       <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo" />
     </div>
 
@@ -61,7 +61,9 @@ export default {
 
 <style scoped>
 .logo {
-  max-width: 150px;
-  margin-bottom: 1rem;
+  max-width: 200px; 
+  display: block; 
+  margin-left: 15px;
+  margin-top: 15px;  
 }
 </style>
