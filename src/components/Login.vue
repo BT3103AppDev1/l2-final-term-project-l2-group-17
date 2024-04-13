@@ -83,6 +83,7 @@ export default {
       }
       const auth = getAuth();
       try {
+
         await signInWithEmailAndPassword(auth, this.email, this.password);
         this.$router.push('/module-planning');
       } catch (error) {
