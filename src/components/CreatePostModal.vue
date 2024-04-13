@@ -49,17 +49,14 @@ export default {
 
     let modalInstance = null;
 
-    // Monitor auth state changes
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser.value = user;
-        await fetchUserDetails(user.uid); // Fetch user details when authenticated
+        await fetchUserDetails(user.uid); 
       } else {
-        // Optionally handle unauthenticated users, like redirecting to login
       }
     });
 
-    // Function to fetch user details from Firestore
     const fetchUserDetails = async (userId) => {
       const userRef = doc(db, "users", userId);
       const userSnap = await getDoc(userRef);
@@ -82,7 +79,6 @@ export default {
       }
     };
 
-    // Submit post with user details included
     const submitPost = async () => {
       if (!currentUser.value) {
         console.error("No authenticated user");
@@ -93,16 +89,15 @@ export default {
         category: postCategory.value,
         content: postContent.value,
         userId: currentUser.value.uid,
-        //userEmail: currentUser.value.email,
-        userName: userDetails.value.username,  // Include user's name from Firestore
-        //userFaculty: userDetails.value.faculty,  // Include user's faculty from Firestore
-        timestamp: new Date()
+        userName: userDetails.value.username,  
+        timestamp: new Date(),
+        likes: {}
       };
 
       try {
         const docRef = await addDoc(collection(db, "posts"), postData);
         console.log("Document written with ID: ", docRef.id);
-        hideModal();  // Close the modal after successful submission
+        hideModal();  
       } catch (e) {
         console.error("Error adding document: ", e);
       };
