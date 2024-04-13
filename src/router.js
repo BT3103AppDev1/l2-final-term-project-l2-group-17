@@ -5,7 +5,7 @@ import { getAuth } from 'firebase/auth';
 
 import Login from './components/Login.vue';
 import SignUp from './components/SignUp.vue';
-import ForgotPassword from './views/ForgotPassword.vue';
+import ForgotPassword from './components/ForgotPassword.vue';
 import Logout from './components/Logout.vue';
 import ModuleBox from './components/ModuleBox.vue';
 import CommunityPage from './components/CommunityPage.vue';

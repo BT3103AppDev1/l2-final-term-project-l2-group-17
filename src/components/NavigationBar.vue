@@ -21,12 +21,6 @@
           </router-link>
         </li>
         <li>
-          <router-link to="/modules" class="nav-link">
-            <i class="bi bi-grid-fill"></i>
-            Modules
-          </router-link>
-        </li>
-        <li>
           <router-link to="/community-page" class="nav-link">
             <i class="bi bi-people-fill"></i>
             Community
