@@ -10,7 +10,6 @@
         <div class="card">
           <div class="card-body">
             <h2 class="card-title text-center">Welcome! Let's get you settled.</h2>
-            
             <form @submit.prevent="signUp" class="needs-validation" novalidate>
               
               <div class="row">
@@ -22,7 +21,7 @@
                 
                 <div class="col-md-6 mb-3">
                   <label for="studentId" class="form-label">Student ID*</label>
-                  <input type="text" class="form-control" id="studentId" v-model="registerInfo.NUSId" required placeholder="Student ID">
+                  <input type="text" class="form-control" id="studentId" v-model="registerInfo.NUSId" required placeholder="EXXXXXXX">
                 </div>
               </div>
               
@@ -30,7 +29,10 @@
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="username" class="form-label">Username*</label>
-                  <input type="text" class="form-control" id="username" v-model="registerInfo.username" required placeholder="Username">
+                  <input type="text" class="form-control" :class="{'is-invalid': usernameTaken}" id="username" v-model="registerInfo.username" @blur="checkUsername" required placeholder="Username">
+                  <div class="invalid-feedback">
+                    This username is already taken. Please choose another one.
+                  </div>
                 </div>
                 
                 <div class="col-md-6 mb-3">
@@ -39,18 +41,24 @@
                 </div>
               </div>
               
+                <!-- Password Input -->
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="password" class="form-label">Password*</label>
                   <input type="password" class="form-control" id="password" v-model="registerInfo.password" required placeholder="Password">
                 </div>
                 
+                <!-- Confirm Password Input -->
                 <div class="col-md-6 mb-3">
                   <label for="confirmPassword" class="form-label">Confirm Password*</label>
-                  <input type="password" class="form-control" id="confirmPassword" v-model="registerInfo.confirmPassword" required placeholder="Confirm Password">
-                </div>
+                  <input type="password" class="form-control" :class="{ 'is-invalid': !passwordsMatch && registerInfo.confirmPassword }" id="confirmPassword" v-model="registerInfo.confirmPassword" required placeholder="Confirm Password">
+                  <div class="invalid-feedback">
+                    Passwords do not match.
+                  </div>
+                </div>  
               </div>
 
+            <div class="row">  
               <!-- Faculty Dropdown -->
               <div class="col-md-6 mb-3">
                 <label for="faculty" class="form-label">Faculty*</label>
@@ -68,7 +76,9 @@
                   <option v-for="degree in majorDict[registerInfo.faculty]" :key="degree">{{ degree }}</option>
                 </select>
               </div>
+            </div>
 
+            <div class="row">
               <!-- Academic Plan Dropdown -->
               <div class="col-md-6 mb-3">
                 <label for="academicPlan" class="form-label">Academic Plan*</label>
@@ -95,6 +105,7 @@
                   <option v-for="major in majorList" :key="major">{{ major }}</option>
                 </select>
               </div>
+            </div>
 
               <div class="text-center">
                 <button type="submit" class="btn btn-primary" :disabled="!isFormComplete">Sign Up</button>
@@ -116,6 +127,7 @@
 import firebaseApp from '../firebase.js';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebase.js';
+import { query, getDocs, collection, where } from 'firebase/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { facultyList, majorDict, acadPlanList, majorList } from './constants';
   
@@ -139,6 +151,7 @@ export default {
       majorDict,
       acadPlanList,
       majorList,
+      usernameTaken: false,
     };
   },
   computed: {
@@ -154,21 +167,36 @@ export default {
       if (this.registerInfo.academicPlan === 'Double Major') {
         formComplete = formComplete && this.registerInfo.secondMajor;
       }
-
       return formComplete;
+    },
+    passwordsMatch() {
+        return this.registerInfo.password === this.registerInfo.confirmPassword;
     }
   },
-  methods: {
-    async signUp() {
-      if (!this.isFormComplete) {
-        alert('Please fill in all fields.');
-        return;
-      }
 
+  methods: {
+    async isUsernameUnique(username) {
+      // Create a query against the collection.
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.empty; // returns true if no documents match the query
+    },
+    async checkUsername() {
+      if (this.registerInfo.username) {
+        const usernameUnique = await this.isUsernameUnique(this.registerInfo.username);
+        this.usernameTaken = !usernameUnique;
+      }
+    },
+    async signUp() {
+      if (!this.isFormComplete || !this.passwordsMatch || this.usernameTaken) {
+      alert('Please make sure all fields are filled in correctly and that the username is not already taken.');
+      return;
+      }
       try {   
         const userCredential = await createUserWithEmailAndPassword(auth, this.registerInfo.email, this.registerInfo.password);
         const user = userCredential.user;
-
+        
         await setDoc(doc(db, 'users', user.uid), {
           name: this.registerInfo.name,
           NUSId: this.registerInfo.NUSId,
@@ -184,9 +212,13 @@ export default {
         alert('Registration successful!');
         this.$router.push('/home');
       } catch (error) {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        alert(`Error ${errorCode}: ${errorMessage}`);
+        if (error.code === 'auth/email-already-in-use') {
+          // Handle the case where the email is already in use
+          alert('This email is already in use by another account.');
+        } else {
+          // Handle other types of errors
+          alert(`Error: ${error.message}`);
+        }
       }
     },
     handleAcademicPlanChange() {
