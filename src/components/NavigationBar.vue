@@ -2,7 +2,7 @@
   <div class="navbar-fixed">
     <!-- Navbar brand/logo -->
     <router-link to="/home" class="navbar-brand">
-      <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="brand-logo">
+      <img src="@/assets/modunus_logo.png" alt="Modunus Logo" class="brand-logo">
     </router-link>
   
     <!-- Navbar links -->

@@ -9,7 +9,7 @@
         <div class="row justify-content-center">
           <div class="col-md-6">
             <div class="text-start mb-4">
-              <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo mb-3 img-fluid" />
+              <img src="../assets/modunus_logo.png" alt="Modunus Logo" class="logo mb-3 img-fluid" />
             </div>
             <div class="card shadow">
               <div class="card-body">

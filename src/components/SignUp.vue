@@ -2,7 +2,7 @@
   <div class="container py-5">
     <!-- Logo Image -->
     <div class="text-center mb-4">
-      <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo" />
+      <img src="@/assets/modunus_logo.png" alt="Modunus Logo" class="logo" />
     </div>
 
     <div class="row justify-content-center">
