@@ -85,7 +85,7 @@ export default {
       try {
 
         await signInWithEmailAndPassword(auth, this.email, this.password);
-        this.$router.push('/module-planning');
+        this.$router.push('/home');
       } catch (error) {
         if (error.code === 'auth/too-many-requests') {
           this.errorMessage = 'Access to this account has been temporarily disabled due to many failed login attempts. Please reset your password';
@@ -114,11 +114,15 @@ export default {
 }
 
 .input-group .form-control {
-  border-right: 0;
+  border-right: none;
+}
+.input-group .form-control:focus {
+  box-shadow: none; /* Remove the default Bootstrap focus glow */
+  border-color: #ced4da; /* Keep the border color consistent */
+}
+.input-group .fa {
+  margin-right: 0; /* Adjust the value as needed */
 }
 
-.input-group .fa {
-  margin-right: -0.75rem; /* Adjust the value as needed */
-}
 </style>
 

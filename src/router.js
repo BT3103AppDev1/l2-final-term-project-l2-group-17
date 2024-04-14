@@ -15,6 +15,7 @@ import GPACalculator from './components/GpaCalc.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
+  { path: '/home', },
   { path: '/login', component: Login, meta: { hideNavbar: true } },
   { path: '/signup', component: SignUp, meta: { hideNavbar: true } },
   { path: '/forgot-password', component: ForgotPassword, meta: { hideNavbar: true } },

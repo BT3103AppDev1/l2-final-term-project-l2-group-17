@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="app-container">
     <NavigationBar v-if="showNavbar" />
-    <div class="content-container">
+    <div class="content-container" :class="{ 'with-navbar': showNavbar }">
       <router-view />
     </div>
   </div>
@@ -38,5 +38,20 @@ export default {
 /* Content container styles */
 .content-container {
   flex-grow: 1; /* Content takes up the remaining space */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  transition: padding-left 0.3s; /* Optional: Smooth transition for padding */
+}
+
+/* Apply padding only when navbar is present */
+.content-container.with-navbar {
+  padding-left: 280px; /* Same width as the navbar */
+}
+
+/* Responsive adjustments if needed */
+@media (max-width: 768px) {
+  .content-container,
+  .content-container.with-navbar {
+    padding-left: 0; /* On smaller screens, remove padding */
+  }
 }
 </style>
