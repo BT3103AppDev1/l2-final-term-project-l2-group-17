@@ -1,21 +1,19 @@
 <template>
-  <div id="app" class="app-container">
-    <NavigationBar v-if="showNavbar" />
-    <div class="content-container" :class="{ 'with-navbar': showNavbar }">
-      <router-view />
-    </div>
+  <div id="app" class="container">
+    <ModulePlanningHeader />
+    <ModuleBox />
   </div>
 </template>
 
 <script>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import NavigationBar from './components/NavigationBar.vue';
+import ModuleBox from "./components/ModuleBox.vue";
+import ModulePlanningHeader from "./components/ModulePlanningHeader.vue";
 
 export default {
   name: "App",
   components: {
-    NavigationBar
+    ModuleBox,
+    ModulePlanningHeader,
   },
   setup() {
     const route = useRoute();
