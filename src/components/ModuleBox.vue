@@ -2,7 +2,7 @@
   <div class="page-container">
     <div class="module-searches">
       <!-- Communities and Engagement -->
-      <div class="module-box">
+      <div class="module-box" draggable="true" @dragstart="startDrag($event, 'GEN')">
         <label for="module-search-gen">Communities and Engagement</label>
         <div class="module-search-container">
           <input type="text" id="module-search-gen" v-model="moduleSearchGEN" @input="filterModulesGEN" placeholder="Search for a module...">
@@ -13,9 +13,9 @@
           </ul>
         </div> 
       </div>
-
+ 
       <!-- Cultures and Connections -->
-      <div class="module-box">
+      <div class="module-box" draggable="true" @dragstart="startDrag($event, 'GEC')">
         <label for="module-search-gec">Cultures and Connections</label>
         <div class="module-search-container">
           <input type="text" id="module-search-gec" v-model="moduleSearchGEC" @input="filterModulesGEC" placeholder="Search for a module...">
@@ -26,8 +26,17 @@
           </ul>
         </div> 
       </div>
+    </div> 
+  <div class="study-plan-container">
+  <div class="study-plan" @drop.prevent="dropModule" @dragover.prevent="allowDrop">
+    <div class="drop-zone">Drop modules here</div> 
+    <div v-for="module in studyPlan" :key="module.moduleCode" class="dropped-module">
+      {{ module.moduleCode }} {{ module.title }}
+      console.log("dropped") 
     </div>
-  </div>
+     </div>
+    </div>
+</div>
 </template>
 
 <script>
@@ -40,9 +49,22 @@ export default {
       moduleSearchGEC: '',
       filteredModulesGEC: [],
       allModules: [],
+      studyPlan: [],
     }
   },
-  methods: {
+  methods: { 
+  allowDrop(event) {
+  event.preventDefault();
+  event.target.classList.add('drag-over');
+},
+dropModule(event) {
+    const moduleData = event.dataTransfer.getData('application/json');
+    const module = JSON.parse(moduleData); 
+    this.studyPlan.push(module);
+  },
+  startDrag(event, module) {
+    event.dataTransfer.setData('application/json', JSON.stringify(module));
+  },
     async fetchModules() {
       try {
         const response = await fetch('https://api.nusmods.com/v2/2023-2024/moduleInfo.json');
@@ -99,24 +121,46 @@ export default {
 </script>
 
 <style>
+.drop-zone { 
+  transition: background-color 0.2s ease-in-out;
+}
+.drop-zone.drag-over {
+  background-color: #f0f0f0;  
+}
+.study-plan { 
+  width: 100%;
+  height: 100%;
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  text-align: center;
+  padding: 20px;
+  background-color: #e0e0e0;
+  border-style: dashed;
+} 
 .page-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  gap: 20px; 
+}
+.module-searches {
+  display: flex;
+  flex-direction: column;
+  width: 50%;  
+  gap: 20px;  
+}
+.study-plan-container {
+  width: 50%; /* Right side takes up the other half */
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
 }
-
-.module-searches {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-}
-
 .module-box {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 16px;
-  width: calc(50% - 20px);
+  width: 100%;
   background-color: #fff;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   position: relative;
@@ -163,3 +207,4 @@ export default {
   background-color: #f9f9f9;
 }
 </style>
+
