@@ -16,7 +16,7 @@ export default {
   name: "App",
   components: {
     NavigationBar
-  },
+  }, 
   setup() {
     const route = useRoute();
     const noNavbarPaths = ['/login', '/signup', '/forgot-password'];
