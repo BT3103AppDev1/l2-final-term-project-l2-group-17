@@ -9,10 +9,6 @@
     <nav class="nav-menu">
       <div class="nav-section-title">DASHBOARD</div>
       <div class="nav-section dashboard">
-        <router-link to="/home" class="nav-item" :class="{ active: isRouteActive('/home') }">
-          <font-awesome-icon icon="home" fixed-width class="nav-icon" />
-          Home
-        </router-link>
         <router-link to="/module-planning" class="nav-item" :class="{ active: isRouteActive('/module-planning') }">
           <font-awesome-icon icon="clipboard-list" fixed-width class="nav-icon" />
           Planner

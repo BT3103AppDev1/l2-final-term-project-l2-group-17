@@ -34,6 +34,7 @@
     padding: 2rem 0;
     border-radius: 10px;
     margin: 1rem 0;
+    margin-top: 0;
   }
   </style>
   

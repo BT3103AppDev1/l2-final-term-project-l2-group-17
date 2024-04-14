@@ -1,14 +1,18 @@
 <template>
-  <div class="container py-5">
-    <!-- Logo Image in the top left corner -->
-    <div class="text-start mb-4">
-      <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo mb-3" />
-    </div>
-    
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card shadow">
-          <div class="card-body">
+  <div class="container-fluid py-5">
+    <div class="row min-vh-100">
+      <div class="col-md-3 col-lg-2 d-flex flex-column sidebar">
+        <carousel/>
+      </div>
+
+      <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 d-flex align-items-center justify-content-center">
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <div class="text-start mb-4">
+              <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo mb-3 img-fluid" />
+            </div>
+            <div class="card shadow">
+              <div class="card-body">
             <h2 class="card-title text-center mb-4">Login</h2>
             <form @submit.prevent="login">
               <div class="mb-3">
@@ -23,7 +27,6 @@
                     <font-awesome-icon :icon="passwordIcon" />
                   </span>
                 </div>
-                <!-- Error Message -->
                 <div v-if="errorMessage" class="alert alert-danger mt-2">{{ errorMessage }}</div>
               </div>
               <div class="d-grid gap-2">
@@ -39,6 +42,10 @@
       </div>
     </div>
   </div>
+  </div>
+  </div>
+
+
 </template>
 
 
@@ -48,12 +55,14 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import Carousel from './Carousel.vue'
 
 library.add(faEye, faEyeSlash);
 
 export default {
   components: {
-    'font-awesome-icon': FontAwesomeIcon
+    'font-awesome-icon': FontAwesomeIcon,
+    Carousel
   },
   data() {
     return {
@@ -85,7 +94,7 @@ export default {
       try {
 
         await signInWithEmailAndPassword(auth, this.email, this.password);
-        this.$router.push('/home');
+        this.$router.push('/module-planning');
       } catch (error) {
         if (error.code === 'auth/too-many-requests') {
           this.errorMessage = 'Access to this account has been temporarily disabled due to many failed login attempts. Please reset your password';
@@ -100,12 +109,6 @@ export default {
 </script>
 
 <style scoped>
-.logo {
-  max-width: 200px;
-  display: block;
-  margin-left: 15px;
-  margin-top: 15px;
-}
 .input-group-text {
   cursor: pointer;
   background: transparent;
@@ -116,13 +119,42 @@ export default {
 .input-group .form-control {
   border-right: none;
 }
+
 .input-group .form-control:focus {
-  box-shadow: none; /* Remove the default Bootstrap focus glow */
-  border-color: #ced4da; /* Keep the border color consistent */
-}
-.input-group .fa {
-  margin-right: 0; /* Adjust the value as needed */
+  box-shadow: none; 
+  border-color: #ced4da; 
+  outline: none; 
 }
 
+.input-group .fa {
+  margin-right: 0; 
+}
+
+.input-group .form-control:-webkit-autofill,
+.input-group .form-control:-webkit-autofill:hover, 
+.input-group .form-control:-webkit-autofill:focus, 
+.input-group .form-control:-webkit-autofill:active  {
+    transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: #495057 !important;
+    box-shadow: none !important;
+    border-color: #ced4da; 
+    outline: none; 
+}
+
+.sidebar {
+  position: fixed; 
+  top: 0;         
+  left: 0;         
+  width: 30%;    
+  height: 100%;    
+  background-color: #b8e2f2;
+  overflow-y: auto; 
+  justify-content: flex-end; 
+  display: flex;
+  flex-direction: column;
+}
+
+
 </style>
+
 

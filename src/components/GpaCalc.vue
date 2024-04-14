@@ -1,18 +1,27 @@
 <template>
-    <div class="container mt-3">
-      <div class="text-center mb-4">
-        <img src="@/assets/modunus_logo.jpg" alt="Modunus Logo" class="logo" />
-      </div>
-      <div class="d-flex align-items-center">
-        <h1 class="mb-3 d-inline-flex align-items-center">
-          GPA Calculator
-          <font-awesome-icon icon="calculator" class="ms-3" />
-        </h1>
-      </div>
-      <div v-if="!selectedSemesterId">
-        <button @click="addSemester" class="btn btn-success mt-3">
+  <div class="gpa-header">
+      <div class="container text-center text-md-start">
+        <div class="row align-items-center">
+          <div class="col-md-7">
+            <h1 class="display-5 fw-bold">GPA Calculator
+              <font-awesome-icon icon="calculator" class="ms-3" />
+            </h1>
+            <p class="lead">Calculation made Easy.</p>
+            <div v-if="!selectedSemesterId">
+        <button @click="addSemester" class="btn btn-primary lg-3">
           <font-awesome-icon :icon="['fas', 'plus']" /> Add Semester
         </button>
+        </div>
+          </div>
+         
+          <div class="col-md-5 d-none d-md-block">
+            <img src="/assets/calculator.svg" alt="calculator" class="img-fluid">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container mt-3">
+      <div v-if="!selectedSemesterId">
         <div class="mt-3">
           <table class="table">
             <thead>
@@ -509,4 +518,12 @@ export default {
   background-color: #e9ecef;
   color: #495057;
 }
+
+.gpa-header {
+    background-color: #e7f2ff;
+    padding: 2rem 0;
+    border-radius: 10px;
+    margin: 1rem 0;
+    margin-top: 0;
+  }
 </style>

@@ -9,6 +9,7 @@
 import ModuleBox from "./components/ModuleBox.vue";
 import ModulePlanningHeader from "./components/ModulePlanningHeader.vue";
 
+
 export default {
   name: "App",
   components: {
