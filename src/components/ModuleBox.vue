@@ -1,6 +1,19 @@
 <template>
   <div class="app-container">  
-    <div class="left-column"> 
+    <div class="left-column">  
+      <input
+        type="text"
+        v-model="moduleSearch"
+        @input="filterModules"  
+        placeholder="Search modules..."
+        class="module-search-bar"
+      />
+      <div class="search-results" v-if="filteredModules.length">
+        <div v-for="module in filteredModules" :key="module.moduleCode" class="module-item">
+          {{ module.moduleCode }} - {{ module.title }}
+        </div> 
+      </div>
+
       <div class="title">Required Modules</div>
       <div
         class="box"
@@ -97,7 +110,9 @@ import { ref, reactive } from "vue";
 export default {
 
   data() {
-    return {
+    return { 
+      moduleSearch: '',
+    filteredModules: [],
       userFound: false, 
       noResultsFound: false,
       searchInitiated: false,
@@ -194,22 +209,33 @@ export default {
 
     return { getList, startDrag, onDrop, removeModule, mcCount, toggleContent, getContent, requirements };
   },
-  methods: {
-    async fetchModules() {
-      try {
-        const response = await fetch('https://api.nusmods.com/v2/2023-2024/moduleInfo.json');
-        console.log('fetch success');
-        if (!response.ok) {
-          throw new Error('Failed to fetch modules');
-        }
-        const data = await response.json();
-        this.test_modules = data;
-      } catch (error) {
-        console.error(error);
+  methods: { 
+    async fetchModules() { 
+    try {
+      const response = await fetch('https://api.nusmods.com/v2/2023-2024/moduleInfo.json');
+      if (!response.ok) {
+        throw new Error('Failed to fetch modules');
       }
+      const data = await response.json();
+      this.test_modules = data;  
+    } catch (error) {
+      console.error(error);
     }
-  }
+  },
+  filterModules() { 
+    if (this.moduleSearch.trim()) {
+      this.filteredModules = this.test_modules.filter(module =>
+        module.moduleCode.toLowerCase().includes(this.moduleSearch.toLowerCase()) ||
+        module.title.toLowerCase().includes(this.moduleSearch.toLowerCase())
+      );
+    } else {
+      this.filteredModules = [];
+    }
+  },
 }
+}
+
+
 </script>
 
 
@@ -343,4 +369,29 @@ export default {
   .rotate {
     transform: rotate(180deg);
   }
+
+  .module-search-bar {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;  
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.search-results {
+  margin-top: 5px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.module-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.module-item:hover {
+  background-color: #f9f9f9;
+}
+
 </style>
