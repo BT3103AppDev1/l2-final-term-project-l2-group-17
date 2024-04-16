@@ -10,12 +10,12 @@
       </button>
       <div v-show="isAccordionOpen" class="accordion-content">
         <ModuleSearchBox
-          v-for="prefix in modulePrefixes"
-          :key="prefix"
-          :prefix="prefix"
-          :label="labels[prefix]"
-          :all-modules="allModules"
-        />
+    v-for="(prefixArray, index) in ulrModulePrefixes"
+    :key="index"
+    :prefix="prefixArray"
+    :label="ULRlabels[getLabelKey(prefixArray)]"
+    :all-modules="allModules"
+/>
       </div>
 
       <!-- CS Foundation Accordion -->
@@ -29,8 +29,23 @@
           :key="module.id"
           :module="module"
         />
+        
       </div>
+
+      <button class="accordion" @click="toggleAccordionPE">
+        Programme Electives
+        <span class="arrow">{{ isAccordionPEOpen ? '▲' : '▼' }}</span>
+      </button>
+      <div v-show="isAccordionPEOpen" class="accordion-content">
+        <ModuleSearchBox
+    v-for="(prefixArray, index) in peModulePrefixes"
+    :key="index"
+    :prefix="prefixArray"
+    :label="PElabels[getLabelKey(prefixArray)]"
+    :all-modules="allModules"
+/>
     </div>
+  </div>
 
     <div class="study-plan-container">
       <!-- Study Plan Drop Zone, same as before -->
@@ -59,7 +74,10 @@ export default {
     ModulePlanningHeader
   },
   data() {
-    return {
+    return { 
+    moduleSearch: '',
+    selectedModule: null, // Holds the currently selected module object
+    filteredModules: [],
       csFoundationModules: [
       // Populate this array with your CS Foundation modules
       { id: 'CS1010X', title: 'Programming Methodology'},
@@ -69,32 +87,52 @@ export default {
       { id: 'CS2100', title: 'Computer Organisation' },
     ],
     isAccordionCSOpen: false, // This will control if the CS accordion content is displayed
-      modulePrefixes: ['GEN', 'GEC', 'GEA', 'GESS'],
-      labels: {
+    ulrModulePrefixes: [['GEX'], ['GEN'], ['GEC'],['GESS'], ['GEA1000', 'BT1101', 'ST1131', 'DSA1101'],['CS1101S','CS1010A','CS1010J']],
+
+    ULRlabels: {
+        GEX: 'Critique and Expression',
         GEN: 'Communities and Engagement',
         GEC: 'Cultures and Connections',
-        GEA: 'Data Literacy',
-        GESS: 'Singapore Studies'
+        GESS: 'Singapore Studies',
+        Data: 'Data Literacy',
+        Digital: 'Digital Literacy',
+
       },
-      isAccordionITOpen: false, // This will control if the IT accordion content is displayed
-      modulePrefixes: ['GEN', 'GEC', 'GEA', 'GESS'],
-      labels: {
-        GEN: 'Communities and Engagement',
-        GEC: 'Cultures and Connections',
-        GEA: 'Data Literacy',
-        GESS: 'Singapore Studies'
-      },
+      peModulePrefixes: [['BT3','BT4','IS3','IS4']],
+
+PElabels: {
+  PE: 'Programme Electives'
+
+},
+      isAccordionPEOpen: false, // This will control if the PE accordion content is displayed
       allModules: [],
       studyPlan: [],
-      isAccordionOpen: false // This will control if the accordion content is displayed
+      isAccordionOpen: false // This will control if the ULR accordion content is displayed
     }
   },
   methods: { 
+
+  getLabelKey(prefixArray) {
+        // Custom logic to determine the label
+        if (prefixArray.includes('GEA1000') || prefixArray.includes('BT1101') || prefixArray.includes('ST1131')) {
+            return 'Data';  // Example condition
+        }
+        if (prefixArray.includes('CS1101S') || prefixArray.includes('CS1010J') || prefixArray.includes('CS1010A')) {
+            return 'Digital';  // Example condition
+        }
+        if (prefixArray.includes('BT3') || prefixArray.includes('BT4') ||prefixArray.includes('IS3') || prefixArray.includes('IS4')) {
+          return 'PE';
+        }
+        return prefixArray[0];  // Default to the first prefix as the key
+    },
     toggleAccordion() {
       this.isAccordionOpen = !this.isAccordionOpen;
     }, 
     toggleAccordionCS() {
       this.isAccordionCSOpen = !this.isAccordionCSOpen;
+    }, 
+    toggleAccordionPE() {
+      this.isAccordionPEOpen = !this.isAccordionPEOpen;
     }, 
     removeModule(index) {
       this.studyPlan.splice(index, 1);

@@ -24,17 +24,19 @@ data() {
 },
 methods: {
   filterModules() {
-    if (this.moduleSearch.trim()) {
-      const searchLower = this.moduleSearch.toLowerCase();
-      this.filteredModules = this.allModules.filter(module => 
-        module.moduleCode.startsWith(this.prefix) &&
+  if (this.moduleSearch.trim()) {
+    const searchLower = this.moduleSearch.toLowerCase();
+    this.filteredModules = this.allModules.filter(module =>
+      this.prefix.some(prefix => // Check against each prefix in the array
+        module.moduleCode.startsWith(prefix) &&
         (module.moduleCode.toLowerCase().includes(searchLower) ||
          module.title.toLowerCase().includes(searchLower))
-      );
-    } else {
-      this.filteredModules = [];
-    }
-  },
+      )
+    );
+  } else {
+    this.filteredModules = [];
+  }
+},
   selectModule(module) {
     this.selectedModule = module;
     this.moduleSearch = `${module.moduleCode} ${module.title}`; // Display the selected module in the input field
@@ -68,6 +70,7 @@ methods: {
 
 .module-search-container {
   position: relative;
+  width: 300px;
 }
 
 .module-suggestions {
