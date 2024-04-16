@@ -1,9 +1,20 @@
 <template>
+    <div class="community-header">
+      <div class="container text-center text-md-start">
+        <div class="row align-items-center">
+          <div class="col-md-7" v-if="user">
+            <h1 class="display-5 fw-bold">Hello, {{ user.name }}</h1>
+          </div>
+          <div class="col-md-5 d-none d-md-block">
+            <img src="../../assets/profile.svg" alt="Profile Icon" class="img-fluid" style="max-width: 50%;">
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="container mt-5">
       <h1 class="mb-4">User Profile</h1>
       <div v-if="user" class="card">
         <div class="card-body">
-          <h5 class="card-title">{{ user.name }}</h5>
           <p class="card-text"><strong>Username:</strong> {{ user.username }}</p>
           <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
           <p class="card-text"><strong>Faculty:</strong> {{ user.faculty }}</p>
@@ -34,7 +45,7 @@
       this.fetchUserData();
     },
     methods: {
-        async fetchUserData() {
+    async fetchUserData() {
       const auth = getAuth();
       const db = getFirestore();
       if (auth.currentUser) {
@@ -55,5 +66,11 @@
   </script>
   
   <style>
+  .community-header {
+    background-color: #e7f2ff;
+    padding: 2rem 0;
+    border-radius: 10px;
+    margin-top: 0;
+  }
   </style>
   
