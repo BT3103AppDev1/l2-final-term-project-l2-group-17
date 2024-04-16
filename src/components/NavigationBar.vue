@@ -33,6 +33,15 @@
           Logout
         </a>
       </div>
+
+      <!-- Feedback Button -->
+      <div class="nav-item" @click="toggleFeedbackModal">
+        <font-awesome-icon icon="comment-dots" fixed-width class="nav-icon" />
+        Feedback
+      </div>
+
+      <!-- Feedback Modal -->
+      <FeedbackModal v-if="showFeedbackModal" @close="toggleFeedbackModal" />
     </nav>
   </div>
 </template>
@@ -41,19 +50,29 @@
 <script>
 import { getAuth, signOut } from 'firebase/auth';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faHome, faClipboardList, faUsers, faCalculator, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faClipboardList, faUsers, faCalculator, faUser, faSignOutAlt, faCommentDots } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import FeedbackModal from './FeedbackModal.vue';
 
-library.add(faHome, faClipboardList, faUsers, faCalculator, faUser, faSignOutAlt);
+library.add(faHome, faClipboardList, faUsers, faCalculator, faUser, faSignOutAlt, faCommentDots);
 
 export default {
   name: 'NavigationBar',
   components: {
-    FontAwesomeIcon
+    FontAwesomeIcon,
+    FeedbackModal
+  },
+  data() {
+    return {
+      showFeedbackModal: false, // Controls the visibility of the feedback modal
+    };
   },
   methods: {
     isRouteActive(routePath) {
       return this.$route.path === routePath;
+    },
+    toggleFeedbackModal() {
+      this.showFeedbackModal = !this.showFeedbackModal;
     },
     async handleLogout() {
       if (confirm('Are you sure you want to log out?')) { // Pop-up confirmation
@@ -114,6 +133,7 @@ export default {
   padding: 0.5rem 1rem; /* Padding inside each nav item */
   text-decoration: none;
   color: inherit; /* Takes the color from parent */
+  cursor: pointer;
 }
 .nav-icon {
   margin-right: 1rem; /* Space between icon and text */
@@ -137,7 +157,6 @@ export default {
   padding: 10px 0;
   font-weight: bold;
 }
-
 </style>
 
 

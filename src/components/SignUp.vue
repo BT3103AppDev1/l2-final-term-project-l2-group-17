@@ -210,7 +210,7 @@ export default {
         });
 
         alert('Registration successful!');
-        this.$router.push('/home');
+        this.$router.push('/login');
       } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
           // Handle the case where the email is already in use
