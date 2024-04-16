@@ -7,6 +7,15 @@
         CS Foundation
         <span class="arrow">{{ isAccordionCSOpen ? '▲' : '▼' }}</span>
       </button>
+
+    <!-- Accordion Content for CS Foundation -->
+    <div v-show="isAccordionCSOpen" class="accordion-content">
+      <div v-for="module in csFoundationModules" :key="module.id" class="module-item">
+        {{ module.id }} {{ module.title }}
+        <!-- Add any additional markup for displaying the module, such as buttons or icons -->
+      </div>
+    </div> 
+
       <button class="accordion" @click="toggleAccordion">
         University Level Requirements
         <span class="arrow">{{ isAccordionOpen ? '▲' : '▼' }}</span>
@@ -20,7 +29,7 @@
           :label="labels[prefix]"
           :all-modules="allModules"
         />
-      </div>
+      </div> 
     </div>
     <div class="study-plan-container">
       <!-- Study Plan Drop Zone, same as before -->
@@ -47,6 +56,15 @@ export default {
   },
   data() {
     return {
+      csFoundationModules: [
+      // Populate this array with your CS Foundation modules
+      { id: 'CS1010X', title: 'Programming Methodology'},
+      { id: 'CS1101S', title: 'Programming Methodology' },
+      { id: 'CS2030S', title: 'Programming Methodology II' },
+      { id: 'CS2040S', title: 'Data Structures and Algorithms' },
+      { id: 'CS2100', title: 'Computer Organisation' },
+    ],
+    isAccordionCSOpen: false, // This will control if the CS accordion content is displayed
       modulePrefixes: ['GEN', 'GEC', 'GEA', 'GESS'],
       labels: {
         GEN: 'Communities and Engagement',
@@ -135,8 +153,7 @@ export default {
 
 .drop-zone.drag-over {
   background-color: #f0f0f0;  
-}
-<style scoped>
+} 
 .dropped-module {
   display: flex;
   align-items: center;
@@ -183,5 +200,17 @@ export default {
 .arrow {
   float: right;
 }
+
+.module-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  position: relative;
+  margin-bottom: 20px; /* Add spacing between boxes */
+}
+
  
 </style>
