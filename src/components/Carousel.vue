@@ -52,13 +52,14 @@
 
 <style scoped>
 .caption-container {
+  padding-top: 5rem;
   text-align: center;
   color: black;
 }
 
 .carousel-item {
   position: relative;
-  height: 95vh
+  height: 95vh;
 }
 
 .carousel-item img {
@@ -66,9 +67,6 @@
   width: 100%;
   height: 100%;
 }
-
-
-
 
 </style>
 

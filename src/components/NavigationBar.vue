@@ -56,12 +56,14 @@ export default {
       return this.$route.path === routePath;
     },
     async handleLogout() {
-      try {
-        const auth = getAuth();
-        await signOut(auth);
-        this.$router.push('/login'); // Redirect user to the login page
-      } catch (error) {
-        console.error('Logout Failed', error);
+      if (confirm('Are you sure you want to log out?')) { // Pop-up confirmation
+        try {
+          const auth = getAuth();
+          await signOut(auth);
+          this.$router.push('/login'); // Redirect user to the login page
+        } catch (error) {
+          console.error('Logout Failed', error);
+        }
       }
     }
   }
@@ -97,6 +99,7 @@ export default {
 .brand-logo {
   width: 100%;
   height: auto;
+  padding-top: 20px;
 }
 
 .nav-menu {
