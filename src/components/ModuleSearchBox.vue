@@ -41,11 +41,15 @@ export default {
     filterModules() {
       if (this.moduleSearch.trim()) {
         const searchLower = this.moduleSearch.toLowerCase();
-        this.filteredModules = this.allModules.filter(
-          (module) =>
-            module.moduleCode.startsWith(this.prefix) &&
-            (module.moduleCode.toLowerCase().includes(searchLower) ||
-              module.title.toLowerCase().includes(searchLower))
+        this.filteredModules = this.allModules.filter((module) =>
+          this.prefix.some(
+            (
+              prefix // Check against each prefix in the array
+            ) =>
+              module.moduleCode.startsWith(prefix) &&
+              (module.moduleCode.toLowerCase().includes(searchLower) ||
+                module.title.toLowerCase().includes(searchLower))
+          )
         );
       } else {
         this.filteredModules = [];
@@ -94,6 +98,7 @@ export default {
   width: 100%;
   margin-top: 10px;
   position: relative;
+  width: 300px;
 }
 
 .module-suggestions {
