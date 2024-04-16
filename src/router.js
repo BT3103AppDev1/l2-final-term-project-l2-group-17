@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { auth } from './firebase';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 
 import Login from './components/Login.vue';
@@ -29,20 +28,25 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-  const hideNavbar = to.matched.some(record => record.meta.hideNavbar);
-  const auth = getAuth(); // Get the auth instance
-  const isAuth = auth.currentUser; // Check if a user is signed in
+  const isAuthenticated = await getAuthState();
 
-  if (requiresAuth && !isAuth) {
+  if (requiresAuth && !isAuthenticated) {
     next('/login');
-  } else if (hideNavbar && isAuth) {
-    next('/module-planning');
   } else {
     next();
   }
 });
+
+function getAuthState() {
+  return new Promise(resolve => {
+    const auth = getAuth();
+    onAuthStateChanged(auth, user => {
+      resolve(!!user);
+    });
+  });
+}
 
 
 export default router;

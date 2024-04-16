@@ -28,19 +28,15 @@
           <font-awesome-icon icon="user" fixed-width class="nav-icon" />
           Profile
         </router-link>
+        <div class="nav-item" @click="toggleFeedbackModal">
+        <font-awesome-icon icon="comment-dots" fixed-width class="nav-icon" />
+        Feedback
+      </div>
         <a href="#" class="nav-item" @click="handleLogout">
           <font-awesome-icon icon="sign-out-alt" fixed-width class="nav-icon" />
           Logout
         </a>
       </div>
-
-      <!-- Feedback Button -->
-      <div class="nav-item" @click="toggleFeedbackModal">
-        <font-awesome-icon icon="comment-dots" fixed-width class="nav-icon" />
-        Feedback
-      </div>
-
-      <!-- Feedback Modal -->
       <FeedbackModal v-if="showFeedbackModal" @close="toggleFeedbackModal" />
     </nav>
   </div>
@@ -126,6 +122,7 @@ export default {
   flex-direction: column;
   align-items: stretch; /* Aligns items in a column */
 }
+
 
 .nav-item {
   display: flex;

@@ -25,18 +25,16 @@ export default {
 
     onMounted(() => {
       const auth = getAuth();
-      onAuthStateChanged(auth, (user) => {
-        isAuthenticated.value = !!user;
-        if (user) {
-          if (router.currentRoute.value.path === '/login') {
-            router.push('/module-planning');
-          }
-        } else {
-          if (router.currentRoute.value.path !== '/login') {
-            router.push('/login');
-          }
-        }
-      });
+      onAuthStateChanged(auth, user => {
+  isAuthenticated.value = !!user;
+  // Check if the current route should be accessible with the new auth state
+  if (user && (router.currentRoute.value.path === '/login' || router.currentRoute.value.path === '/signup')) {
+    router.push('/module-planning');
+  } else if (!user && router.currentRoute.value.meta.requiresAuth) {
+    router.push('/login');
+  }
+});
+
     });
 
     return {
