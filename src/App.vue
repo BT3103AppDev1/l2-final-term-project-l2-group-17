@@ -1,29 +1,46 @@
 <template>
-  <div id="app" class="app-container">
-    <NavigationBar v-if="showNavbar" />
-    <div class="content-container" :class="{ 'with-navbar': showNavbar }">
+  <div id="app">
+    <!-- Navigation bar shown only if the user is authenticated -->
+    <NavigationBar v-if="isAuthenticated" />
+    <!-- Content container gets 'with-navbar' class if the navbar is present -->
+    <div class="content-container" :class="{ 'with-navbar': isAuthenticated }">
       <router-view />
     </div>
   </div>
 </template>
 
 <script>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import NavigationBar from './components/NavigationBar.vue';
+import { ref, onMounted } from 'vue';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import NavigationBar from './components/NavigationBar.vue'; 
+import router from './router';
 
 export default {
-  name: "App",
+  name: 'App',
   components: {
-    NavigationBar
+    NavigationBar 
   },
   setup() {
-    const route = useRoute();
-    const noNavbarPaths = ['/login', '/signup', '/forgot-password'];
-    const showNavbar = computed(() => !noNavbarPaths.includes(route.path));
+    const isAuthenticated = ref(false);
+
+    onMounted(() => {
+      const auth = getAuth();
+      onAuthStateChanged(auth, (user) => {
+        isAuthenticated.value = !!user;
+        if (user) {
+          if (router.currentRoute.value.path === '/login') {
+            router.push('/module-planning');
+          }
+        } else {
+          if (router.currentRoute.value.path !== '/login') {
+            router.push('/login');
+          }
+        }
+      });
+    });
 
     return {
-      showNavbar
+      isAuthenticated
     };
   }
 };
@@ -49,6 +66,9 @@ export default {
 
 /* Responsive adjustments if needed */
 @media (max-width: 768px) {
+  row.justify-content-center {
+    min-height: auto; /* Adjust for smaller screens */
+  }
   .content-container,
   .content-container.with-navbar {
     padding-left: 0; /* On smaller screens, remove padding */
