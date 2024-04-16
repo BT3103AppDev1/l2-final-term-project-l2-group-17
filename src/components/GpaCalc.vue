@@ -287,24 +287,26 @@ export default {
       recommendationsModal.show();
     },
     async loadUserData() {
-      const auth = getAuth();
-      const db = getFirestore();
-      const user = auth.currentUser;
-      if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          this.modules = userData.modules || [];
-          this.semesters = userData.semesters || [];
-        }
-      }
-    },
+  const auth = getAuth();
+  const db = getFirestore();
+  const user = auth.currentUser;
+  if (user) {
+    // Adjust the collection from "users" to "gpa"
+    const userDoc = await getDoc(doc(db, "gpa", user.uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      this.modules = userData.modules || [];
+      this.semesters = userData.semesters || [];
+    }
+  }
+},
+
     async saveUserData() {
       const auth = getAuth();
       const db = getFirestore();
       const user = auth.currentUser;
       if (user) {
-        await setDoc(doc(db, "users", user.uid), {
+        await setDoc(doc(db, "gpa", user.uid), {
           modules: this.modules,
           semesters: this.semesters
         });
