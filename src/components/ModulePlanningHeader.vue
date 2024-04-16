@@ -1,9 +1,6 @@
 <template>
   <div class="container">
-    <header class="row align-items-center" style="padding-top: 30px">
-      <div class="col-auto">
-        <img src="../assets/modunus_logo.jpeg" alt="Logo" class="logo" />
-      </div>
+    <header class="row align-items-center" style="padding-top: 30px"> 
       <div class="col">
         <MajorSelectDropdown />
       </div>

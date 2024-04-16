@@ -1,58 +1,58 @@
 <template>
-    <div class="module-box" :id="'module-box-' + prefix" draggable="true" @dragstart="startDrag">
-      <label :for="'module-search-' + prefix">{{ label }}</label>
-      <div class="module-search-container">
-        <input :id="'module-search-' + prefix" v-model="moduleSearch" @input="filterModules" placeholder="Search for a module...">
-        <ul v-if="filteredModules.length > 0" class="module-suggestions">
-          <li v-for="module in filteredModules" :key="module.moduleCode" @click="selectModule(module)">
-            {{ module.moduleCode }} {{ module.title }}
-          </li>
-        </ul>
-      </div>
+  <div class="module-box" :id="'module-box-' + prefix" draggable="true" @dragstart="startDrag">
+    <label :for="'module-search-' + prefix">{{ label }}</label>
+    <div class="module-search-container">
+      <input :id="'module-search-' + prefix" v-model="moduleSearch" @input="filterModules" placeholder="Search for a module...">
+      <ul v-if="filteredModules.length > 0" class="module-suggestions">
+        <li v-for="module in filteredModules" :key="module.moduleCode" @click="selectModule(module)">
+          {{ module.moduleCode }} {{ module.title }}
+        </li>
+      </ul>
     </div>
-  </template>
-  
-  <script>
-export default {
-  props: ['prefix', 'label', 'allModules'],
-  data() {
-    return {
-      moduleSearch: '',
-      filteredModules: [],
-    };
-  },
-  methods: {
-    filterModules() {
-      if (this.moduleSearch.trim()) {
-        const searchLower = this.moduleSearch.toLowerCase();
-        this.filteredModules = this.allModules.filter(module => 
-          module.moduleCode.startsWith(this.prefix) &&
-          (module.moduleCode.toLowerCase().includes(searchLower) ||
-           module.title.toLowerCase().includes(searchLower))
-        );
-      } else {
-        this.filteredModules = [];
-      }
-    },
-    selectModule(module) {
-      this.moduleSearch = `${module.moduleCode} ${module.title}`;
-      this.filteredModules = [];
-      this.$emit('module-selected', { module, prefix: this.prefix });
-    },
-    startDrag(event) { 
-  const moduleDetails = this.moduleSearch.split(' ');  
-  const moduleCode = moduleDetails[0]; 
+  </div>
+</template>
 
-  const moduleData = {
-    moduleCode: moduleCode,  
-    title: this.moduleSearch,
-    id: 'module-box-' + moduleCode
+<script>
+export default {
+props: ['prefix', 'label', 'allModules'],
+data() {
+  return {
+    moduleSearch: '',
+    selectedModule: null, // Holds the currently selected module object
+    filteredModules: [],
   };
-  event.dataTransfer.setData('application/json', JSON.stringify(moduleData));
-}
+},
+methods: {
+  filterModules() {
+    if (this.moduleSearch.trim()) {
+      const searchLower = this.moduleSearch.toLowerCase();
+      this.filteredModules = this.allModules.filter(module => 
+        module.moduleCode.startsWith(this.prefix) &&
+        (module.moduleCode.toLowerCase().includes(searchLower) ||
+         module.title.toLowerCase().includes(searchLower))
+      );
+    } else {
+      this.filteredModules = [];
+    }
+  },
+  selectModule(module) {
+    this.selectedModule = module;
+    this.moduleSearch = `${module.moduleCode} ${module.title}`; // Display the selected module in the input field
+    this.filteredModules = [];
+    this.$emit('module-selected', module); // Emit the selected module for any parent component handling
+  },
+  startDrag(event) {
+    if (this.selectedModule) {
+      event.dataTransfer.setData('application/json', JSON.stringify(this.selectedModule)); // Drag the entire module object
+    } else {
+      // If no module is selected, prevent dragging
+      event.preventDefault();
+    }
   }
 }
-</script>
+}
+</script> 
+
 
   <style scoped>
 .module-box {
@@ -63,7 +63,7 @@ export default {
   background-color: #fff;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   position: relative;
-  margin-bottom: 20px; /* Add spacing between boxes */
+  margin-bottom: 20px;  
 }
 
 .module-search-container {
@@ -81,17 +81,17 @@ export default {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   position: absolute;
   width: 100%;
-  z-index: 10; /* Ensure dropdown is above other elements */
+  z-index: 10;  
 }
 
 .module-suggestions li {
   padding: 8px;
   border-bottom: 1px solid #eee;
-  cursor: pointer; /* Indicates that items are clickable */
+  cursor: pointer; 
 }
 
 .module-suggestions li:hover {
-  background-color: #f9f9f9; /* Highlight on hover to improve user experience */
+  background-color: #f9f9f9; 
 }
 
 input[type="text"] {
@@ -99,6 +99,6 @@ input[type="text"] {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box; /* Ensures padding does not affect width */
+  box-sizing: border-box; 
 }
 </style> 

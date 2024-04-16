@@ -1,26 +1,13 @@
 <template>
+  <ModulePlanningHeader />
+
   <div class="page-container">
     <div class="accordion-container">
-      <!-- Accordion Toggle for University Level Requirements -->
-
-      <button class="accordion" @click="toggleAccordionCS">
-        CS Foundation
-        <span class="arrow">{{ isAccordionCSOpen ? '▲' : '▼' }}</span>
-      </button>
-
-    <!-- Accordion Content for CS Foundation -->
-    <div v-show="isAccordionCSOpen" class="accordion-content">
-      <div v-for="module in csFoundationModules" :key="module.id" class="module-item">
-        {{ module.id }} {{ module.title }}
-        <!-- Add any additional markup for displaying the module, such as buttons or icons -->
-      </div>
-    </div> 
-
+      <!-- University Level Requirements Accordion -->
       <button class="accordion" @click="toggleAccordion">
         University Level Requirements
         <span class="arrow">{{ isAccordionOpen ? '▲' : '▼' }}</span>
       </button>
-      <!-- Accordion Content -->
       <div v-show="isAccordionOpen" class="accordion-content">
         <ModuleSearchBox
           v-for="prefix in modulePrefixes"
@@ -29,8 +16,22 @@
           :label="labels[prefix]"
           :all-modules="allModules"
         />
-      </div> 
+      </div>
+
+      <!-- CS Foundation Accordion -->
+      <button class="accordion" @click="toggleAccordionCS">
+        CS Foundation
+        <span class="arrow">{{ isAccordionCSOpen ? '▲' : '▼' }}</span>
+      </button>
+      <div v-show="isAccordionCSOpen" class="accordion-content">
+        <ModuleNonSearchBox
+          v-for="module in csFoundationModules"
+          :key="module.id"
+          :module="module"
+        />
+      </div>
     </div>
+
     <div class="study-plan-container">
       <!-- Study Plan Drop Zone, same as before -->
       <div class="study-plan" @drop.prevent="dropModule" @dragover.prevent="allowDrop">
@@ -47,12 +48,15 @@
 
 <script>
 import ModuleSearchBox from './ModuleSearchBox.vue';  
-
+import ModuleNonSearchBox from './ModuleNonSearchBox.vue';
+import ModulePlanningHeader from './ModulePlanningHeader.vue';
 
 export default {
   name: 'ModuleBox',
   components: {
-    ModuleSearchBox
+    ModuleSearchBox,
+    ModuleNonSearchBox,
+    ModulePlanningHeader
   },
   data() {
     return {
@@ -65,6 +69,14 @@ export default {
       { id: 'CS2100', title: 'Computer Organisation' },
     ],
     isAccordionCSOpen: false, // This will control if the CS accordion content is displayed
+      modulePrefixes: ['GEN', 'GEC', 'GEA', 'GESS'],
+      labels: {
+        GEN: 'Communities and Engagement',
+        GEC: 'Cultures and Connections',
+        GEA: 'Data Literacy',
+        GESS: 'Singapore Studies'
+      },
+      isAccordionITOpen: false, // This will control if the IT accordion content is displayed
       modulePrefixes: ['GEN', 'GEC', 'GEA', 'GESS'],
       labels: {
         GEN: 'Communities and Engagement',
@@ -195,7 +207,7 @@ export default {
   background: #fff;
   overflow: hidden;
   transition: max-height 0.2s ease-out;
-}
+} 
 
 .arrow {
   float: right;
