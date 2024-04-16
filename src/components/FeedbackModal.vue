@@ -5,6 +5,7 @@
           <h3>Share your feedback</h3>
         </header>
         <form @submit.prevent="submitFeedback">
+          <h4 class="feedback-question">What do you think of our app?</h4>
           <div class="form-group">
             <label for="name">Name</label>
             <input type="text" id="name" v-model="feedback.name" required>
@@ -87,6 +88,11 @@ export default {
 </script>
   
 <style scoped>
+.feedback-question {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #333; 
+}
 .feedback-modal-overlay {
 position: fixed;
 top: 0;
