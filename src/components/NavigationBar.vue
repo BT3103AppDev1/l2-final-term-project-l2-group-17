@@ -4,6 +4,7 @@
     <router-link to="/home" class="navbar-brand">
       <img src="@/assets/modunus_logo.png" alt="Modunus Logo" class="brand-logo">
     </router-link>
+    <div v-if="user" class="welcome-message">Welcome, {{ user.name }}</div>
   
     <!-- Navbar links -->
     <nav class="nav-menu">
@@ -28,32 +29,65 @@
           <font-awesome-icon icon="user" fixed-width class="nav-icon" />
           Profile
         </router-link>
+        <div class="nav-item" @click="toggleFeedbackModal">
+        <font-awesome-icon icon="comment-dots" fixed-width class="nav-icon" />
+        Feedback
+      </div>
         <a href="#" class="nav-item" @click="handleLogout">
           <font-awesome-icon icon="sign-out-alt" fixed-width class="nav-icon" />
           Logout
         </a>
       </div>
+      <FeedbackModal v-if="showFeedbackModal" @close="toggleFeedbackModal" />
     </nav>
   </div>
 </template>
 
 
 <script>
-import { getAuth, signOut } from 'firebase/auth';
+import { confirmPasswordReset, getAuth, signOut} from 'firebase/auth';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faHome, faClipboardList, faUsers, faCalculator, faUser, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faHome, faClipboardList, faUsers, faCalculator, faUser, faSignOutAlt, faCommentDots } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import FeedbackModal from './FeedbackModal.vue';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
-library.add(faHome, faClipboardList, faUsers, faCalculator, faUser, faSignOutAlt);
+library.add(faHome, faClipboardList, faUsers, faCalculator, faUser, faSignOutAlt, faCommentDots);
 
 export default {
   name: 'NavigationBar',
   components: {
-    FontAwesomeIcon
+    FontAwesomeIcon,
+    FeedbackModal
+  },
+  created() {
+    this.fetchUserData(); 
+  },
+  data() {
+    return {
+      user: null,
+      showFeedbackModal: false, // Controls the visibility of the feedback modal
+    };
   },
   methods: {
+    async fetchUserData() {
+      const auth = getAuth();
+      const db = getFirestore();
+      if (auth.currentUser) {
+        const userDoc = doc(db, "users", auth.currentUser.uid);
+        const docSnap = await getDoc(userDoc);
+        if (docSnap.exists()) {
+          this.user = docSnap.data(); 
+        } else {
+          console.log("No such document!");
+        }
+      }
+    },
     isRouteActive(routePath) {
       return this.$route.path === routePath;
+    },
+    toggleFeedbackModal() {
+      this.showFeedbackModal = !this.showFeedbackModal;
     },
     async handleLogout() {
       if (confirm('Are you sure you want to log out?')) { // Pop-up confirmation
@@ -108,12 +142,14 @@ export default {
   align-items: stretch; /* Aligns items in a column */
 }
 
+
 .nav-item {
   display: flex;
   align-items: center;
   padding: 0.5rem 1rem; /* Padding inside each nav item */
   text-decoration: none;
   color: inherit; /* Takes the color from parent */
+  cursor: pointer;
 }
 .nav-icon {
   margin-right: 1rem; /* Space between icon and text */
@@ -138,6 +174,11 @@ export default {
   font-weight: bold;
 }
 
+.welcome-message {
+  font-weight: bold;
+  margin-top: 10px;
+  font-size: larger
+}
 </style>
 
 

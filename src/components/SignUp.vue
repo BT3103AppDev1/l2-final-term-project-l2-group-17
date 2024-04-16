@@ -40,22 +40,28 @@
                   <input type="email" class="form-control" id="email" v-model="registerInfo.email" required placeholder="Email">
                 </div>
               </div>
-              
+              <div class="row">  
                 <!-- Password Input -->
-              <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="password" class="form-label">Password*</label>
-                  <input type="password" class="form-control" id="password" v-model="registerInfo.password" required placeholder="Password">
+                  <div class="input-group">
+                    <input :type="passwordFieldType" class="form-control" id="password" v-model="registerInfo.password" required placeholder="Password">
+                    <span class="input-group-text" @click="togglePasswordVisibility">
+                      <font-awesome-icon :icon="passwordIcon" />
+                    </span>
+                  </div>
                 </div>
-                
+                  
                 <!-- Confirm Password Input -->
                 <div class="col-md-6 mb-3">
                   <label for="confirmPassword" class="form-label">Confirm Password*</label>
-                  <input type="password" class="form-control" :class="{ 'is-invalid': !passwordsMatch && registerInfo.confirmPassword }" id="confirmPassword" v-model="registerInfo.confirmPassword" required placeholder="Confirm Password">
-                  <div class="invalid-feedback">
-                    Passwords do not match.
+                  <div class="input-group">
+                    <input :type="confirmPasswordFieldType" class="form-control" id="confirmPassword" v-model="registerInfo.confirmPassword" required placeholder="Confirm Password">
+                    <span class="input-group-text" @click="toggleConfirmPasswordVisibility">
+                      <font-awesome-icon :icon="confirmPasswordIcon" />
+                    </span>
                   </div>
-                </div>  
+                </div>
               </div>
 
             <div class="row">  
@@ -130,8 +136,16 @@ import { auth, db } from '../firebase.js';
 import { query, getDocs, collection, where } from 'firebase/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { facultyList, majorDict, acadPlanList, majorList } from './constants';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+
+library.add(faEye, faEyeSlash);
   
 export default {
+  components: {
+    FontAwesomeIcon,
+  },
   data() {
     return {
       registerInfo: {
@@ -147,6 +161,10 @@ export default {
         secondDegree: '',
         secondMajor: '',
       },
+      passwordFieldType: 'password',
+      confirmPasswordFieldType: 'password',
+      passwordIcon: 'eye-slash',
+      confirmPasswordIcon: 'eye-slash',
       facultyList,
       majorDict,
       acadPlanList,
@@ -175,6 +193,14 @@ export default {
   },
 
   methods: {
+    togglePasswordVisibility() {
+      this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
+      this.passwordIcon = this.passwordFieldType === 'text' ? 'eye' : 'eye-slash';
+    },
+    toggleConfirmPasswordVisibility() {
+      this.confirmPasswordFieldType = this.confirmPasswordFieldType === 'password' ? 'text' : 'password';
+      this.confirmPasswordIcon = this.confirmPasswordFieldType === 'text' ? 'eye' : 'eye-slash';
+    },
     async isUsernameUnique(username) {
       // Create a query against the collection.
       const usersRef = collection(db, 'users');
@@ -210,7 +236,7 @@ export default {
         });
 
         alert('Registration successful!');
-        this.$router.push('/home');
+        this.$router.push('/login');
       } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
           // Handle the case where the email is already in use
@@ -240,6 +266,22 @@ export default {
   display: block; 
   margin-left: 15px;
   margin-top: 15px;  
+}
+.input-group-text {
+  cursor: pointer;
+  background: transparent;
+  border-left: 0;
+  outline: none;
+}
+
+.input-group .form-control {
+  border-right: none;
+}
+
+.input-group .form-control:focus {
+  box-shadow: none; 
+  border-color: #ced4da; 
+  outline: none; 
 }
 </style>
   

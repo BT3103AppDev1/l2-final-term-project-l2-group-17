@@ -1,9 +1,7 @@
 <template>
   <div id="app">
-    <!-- Navigation bar shown only if the user is authenticated -->
-    <NavigationBar v-if="isAuthenticated" />
-    <!-- Content container gets 'with-navbar' class if the navbar is present -->
-    <div class="content-container" :class="{ 'with-navbar': isAuthenticated }">
+    <NavigationBar v-if="isAuthenticated && !isExcludedRoute" />
+    <div class="content-container" :class="{ 'with-navbar': isAuthenticated && !isExcludedRoute }">
       <router-view />
     </div>
   </div>
@@ -20,23 +18,26 @@ export default {
   components: {
     NavigationBar 
   },
+  computed: {
+    isExcludedRoute() {
+      const excludedPaths = ['/login', '/forget-password', '/signup'];
+      return excludedPaths.includes(this.$route.path);
+    }
+  },
   setup() {
     const isAuthenticated = ref(false);
 
     onMounted(() => {
       const auth = getAuth();
-      onAuthStateChanged(auth, (user) => {
-        isAuthenticated.value = !!user;
-        if (user) {
-          if (router.currentRoute.value.path === '/login') {
-            router.push('/module-planning');
-          }
-        } else {
-          if (router.currentRoute.value.path !== '/login') {
-            router.push('/login');
-          }
-        }
-      });
+      onAuthStateChanged(auth, user => {
+  isAuthenticated.value = !!user;
+  if (user && (router.currentRoute.value.path === '/login' || router.currentRoute.value.path === '/signup')) {
+    router.push('/module-planning');
+  } else if (!user && router.currentRoute.value.meta.requiresAuth) {
+    router.push('/login');
+  }
+});
+
     });
 
     return {
