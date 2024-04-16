@@ -8,45 +8,97 @@
             {{ module.moduleCode }} {{ module.title }}
           </li>
         </ul>
-      </div> 
+      </div>
     </div>
   </template>
   
   <script>
-  export default {
-    props: ['prefix', 'label', 'allModules'],
-    data() {
-      return {
-        moduleSearch: '',
-        filteredModules: [],
+export default {
+  props: ['prefix', 'label', 'allModules'],
+  data() {
+    return {
+      moduleSearch: '',
+      filteredModules: [],
+    };
+  },
+  methods: {
+    filterModules() {
+      if (this.moduleSearch.trim()) {
+        const searchLower = this.moduleSearch.toLowerCase();
+        this.filteredModules = this.allModules.filter(module => 
+          module.moduleCode.startsWith(this.prefix) &&
+          (module.moduleCode.toLowerCase().includes(searchLower) ||
+           module.title.toLowerCase().includes(searchLower))
+        );
+      } else {
+        this.filteredModules = [];
       }
     },
-    methods: {
-      filterModules() {
-        if (!this.moduleSearch.trim()) {
-          this.filteredModules = [];
-          return;
-        }
-        this.filteredModules = this.allModules.filter(module =>
-          module.moduleCode.startsWith(this.prefix) &&
-          (module.moduleCode.toLowerCase().includes(this.moduleSearch.toLowerCase()) ||
-           module.title.toLowerCase().includes(this.moduleSearch.toLowerCase()))
-        );
-      },
-      selectModule(module) {
-        this.moduleSearch = `${module.moduleCode} ${module.title}`;
-        this.filteredModules = [];
-        this.$emit('module-selected', { module, prefix: this.prefix });
-      },
-      startDrag(event) {
-        const moduleData = {
-          type: this.prefix,
-          title: this.moduleSearch,
-          id: 'module-box-' + this.moduleSearch
-        };
-        event.dataTransfer.setData('application/json', JSON.stringify(moduleData));
-      }
-    }
+    selectModule(module) {
+      this.moduleSearch = `${module.moduleCode} ${module.title}`;
+      this.filteredModules = [];
+      this.$emit('module-selected', { module, prefix: this.prefix });
+    },
+    startDrag(event) { 
+  const moduleDetails = this.moduleSearch.split(' ');  
+  const moduleCode = moduleDetails[0]; 
+
+  const moduleData = {
+    moduleCode: moduleCode,  
+    title: this.moduleSearch,
+    id: 'module-box-' + moduleCode
+  };
+  event.dataTransfer.setData('application/json', JSON.stringify(moduleData));
+}
   }
-  </script>
-  
+}
+</script>
+
+  <style scoped>
+.module-box {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  position: relative;
+  margin-bottom: 20px; /* Add spacing between boxes */
+}
+
+.module-search-container {
+  position: relative;
+}
+
+.module-suggestions {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid #eee;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  position: absolute;
+  width: 100%;
+  z-index: 10; /* Ensure dropdown is above other elements */
+}
+
+.module-suggestions li {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer; /* Indicates that items are clickable */
+}
+
+.module-suggestions li:hover {
+  background-color: #f9f9f9; /* Highlight on hover to improve user experience */
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Ensures padding does not affect width */
+}
+</style> 

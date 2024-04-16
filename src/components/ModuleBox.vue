@@ -1,20 +1,31 @@
 <template>
   <div class="page-container">
-    <div class="module-searches">
-      <!-- Dynamic Module Search Boxes -->
-      <ModuleSearchBox
-        v-for="prefix in modulePrefixes"
-        :key="prefix"
-        :prefix="prefix"
-        :label="labels[prefix]"
-        :all-modules="allModules"
-        @module-selected="addModuleToPlan"
-      />
+    <div class="accordion-container">
+      <!-- Accordion Toggle for University Level Requirements -->
+
+      <button class="accordion" @click="toggleAccordionCS">
+        CS Foundation
+        <span class="arrow">{{ isAccordionCSOpen ? '▲' : '▼' }}</span>
+      </button>
+      <button class="accordion" @click="toggleAccordion">
+        University Level Requirements
+        <span class="arrow">{{ isAccordionOpen ? '▲' : '▼' }}</span>
+      </button>
+      <!-- Accordion Content -->
+      <div v-show="isAccordionOpen" class="accordion-content">
+        <ModuleSearchBox
+          v-for="prefix in modulePrefixes"
+          :key="prefix"
+          :prefix="prefix"
+          :label="labels[prefix]"
+          :all-modules="allModules"
+        />
+      </div>
     </div>
     <div class="study-plan-container">
+      <!-- Study Plan Drop Zone, same as before -->
       <div class="study-plan" @drop.prevent="dropModule" @dragover.prevent="allowDrop">
         <div class="drop-zone">Drop modules here</div>
-        <!-- Display dropped modules here -->
         <div v-for="(module, index) in studyPlan" :key="module.id" class="dropped-module">
           {{ module.title }}  
           <button @click="removeModule(index)" class="remove-module-btn">&#x2715;</button>
@@ -24,32 +35,37 @@
   </div>
 </template>
 
+
 <script>
-import ModuleSearchBox from './ModuleSearchBox.vue';  // Make sure the path matches the location of your ModuleSearchBox.vue file
-import { ref } from 'vue';
+import ModuleSearchBox from './ModuleSearchBox.vue';  
+
 
 export default {
-  name: 'ParentComponent',
+  name: 'ModuleBox',
   components: {
     ModuleSearchBox
   },
   data() {
     return {
-      modulePrefixes: ['GEN', 'GEC', 'GEA', 'GES'], // Example prefixes, you can modify these based on your needs
+      modulePrefixes: ['GEN', 'GEC', 'GEA', 'GESS'],
       labels: {
         GEN: 'Communities and Engagement',
         GEC: 'Cultures and Connections',
-        GEA: 'Art and Creativity',
-        GES: 'Scientific Inquiry'
+        GEA: 'Data Literacy',
+        GESS: 'Singapore Studies'
       },
       allModules: [],
       studyPlan: [],
+      isAccordionOpen: false // This will control if the accordion content is displayed
     }
   },
-  methods: {
-    addModuleToPlan(data) {
-      this.studyPlan.push(data.module);
-    },
+  methods: { 
+    toggleAccordion() {
+      this.isAccordionOpen = !this.isAccordionOpen;
+    }, 
+    toggleAccordionCS() {
+      this.isAccordionCSOpen = !this.isAccordionCSOpen;
+    }, 
     removeModule(index) {
       this.studyPlan.splice(index, 1);
     },
@@ -59,23 +75,25 @@ export default {
     dropModule(event) {
       const moduleData = event.dataTransfer.getData('application/json');
       const module = JSON.parse(moduleData);
-      this.studyPlan.push(module);
+      if (!this.studyPlan.some(m => m.moduleCode === module.moduleCode)) {
+        this.studyPlan.push(module);
+      }
     },
-   async fetchModules() {
-      // Implementation to fetch modules, possibly from an API
-      fetch('https://api.example.com/modules')
-        .then(response => response.json())
-        .then(data => {
-          this.allModules = data;
-        })
-        .catch(error => console.error('Failed to fetch modules:', error));
-    }
+    async fetchModules() {
+      try {
+        const response = await fetch('https://api.nusmods.com/v2/2023-2024/moduleInfo.json');
+        this.allModules = await response.json();
+      } catch (error) {
+        console.error('Failed to fetch modules:', error);
+      }
+    },
   },
   created() {
     this.fetchModules();
   }
 }
 </script>
+
 
 <style scoped>
 .page-container {
@@ -85,18 +103,21 @@ export default {
   padding: 20px;
   gap: 20px;
 }
+
 .module-searches {
   display: flex;
   flex-direction: column;
-  width: 50%;
-  gap: 20px;
+  width: 50%;  
+  gap: 20px;  
 }
+
 .study-plan-container {
-  width: 50%;
+  width: 50%; /* Right side takes up the other half */
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .study-plan {
   width: 100%;
   height: 100%;
@@ -107,10 +128,60 @@ export default {
   background-color: #e0e0e0;
   border-style: dashed;
 }
+
 .drop-zone {
   transition: background-color 0.2s ease-in-out;
 }
+
 .drop-zone.drag-over {
-  background-color: #f0f0f0;
+  background-color: #f0f0f0;  
 }
+<style scoped>
+.dropped-module {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dropped-module .remove-module-btn {
+  margin-left: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.accordion {
+  background-color: lightblue;
+  color: #000;
+  cursor: pointer;
+  padding: 18px; 
+  width: 100%;
+  text-align: left;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+  border-radius: 4px;
+  margin-bottom: 10px;  
+}
+
+.accordion-content {
+  padding: 0 18px;
+  background: #fff;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+
+.arrow {
+  float: right;
+}
+ 
 </style>
