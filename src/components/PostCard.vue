@@ -33,13 +33,19 @@
       </footer>
     </div>
   </div>
+  <PostComments :postId="post.id" />
 </template>
 
 <script>
 import { db } from '../firebase';
 import { doc, updateDoc, deleteDoc, arrayRemove, arrayUnion, deleteField } from "firebase/firestore";
+import PostComments from './PostComments.vue';
 
 export default {
+  components: {
+    PostComments
+  },
+  emits: ['update-post', 'delete-post'],
   name: 'Post',
   props: {
     post: Object,
