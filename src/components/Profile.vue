@@ -23,7 +23,9 @@
           <p class="card-text"><strong>Second Degree:</strong> {{ user.secondDegree || "N/A" }}</p>
           <p class="card-text"><strong>Second Major:</strong> {{ user.secondMajor || "N/A" }}</p>
           <p class="card-text"><strong>Academic Plan:</strong> {{ user.academicPlan }}</p>
-          <button class="btn btn-primary" @click="editUser">Edit Profile</button>
+          <button class="btn btn-primary me-2" @click="editUser">Edit Profile</button>
+<button class="btn btn-danger" @click="showChangePasswordModal">Change Password</button>
+
         </div>
       </div>
       <div v-else>
@@ -73,24 +75,87 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+        <button type="button" class="btn-close"id="closePassModallButton" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form @submit.prevent="changePassword">
+          <div class="mb-3">
+            <label for="currentPassword" class="form-label">Current Password</label>
+            <input type="password" class="form-control" id="currentPassword" v-model="currentPassword">
+          </div>
+          <div class="mb-3">
+            <label for="newPassword" class="form-label">New Password</label>
+            <input type="password" class="form-control" id="newPassword" v-model="newPassword">
+          </div>
+          <div class="mb-3">
+            <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" id="confirmNewPassword" v-model="confirmNewPassword">
+          </div>
+          <button type="submit" class="btn btn-primary">Update Password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
   </template>
   
   <script>
   import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
-  import {  getAuth } from 'firebase/auth';
+  import {  getAuth, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
   import { Modal } from 'bootstrap';
   
   export default {
     data() {
       return {
         user: null,
-        editUserData: null
+        editUserData: null,
+        currentPassword: '',
+        newPassword: '',
+        confirmNewPassword: ''
       };
     },
     created() {
       this.fetchUserData();
     },
     methods: {
+    showChangePasswordModal() {
+      const modal = new Modal(document.getElementById('changePasswordModal'));
+      modal.show();
+    },
+    async changePassword() {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (this.newPassword !== this.confirmNewPassword) {
+        alert("The new passwords do not match.");
+        return;
+    }
+
+    try {
+        // Reauthenticate the user
+        const credential = EmailAuthProvider.credential(
+            user.email, 
+            this.currentPassword
+        );
+        await reauthenticateWithCredential(user, credential);
+
+        // Update password
+        await user.updatePassword(this.newPassword);
+        alert("Password updated successfully!");
+        this.closeChangePasswordModal();
+    } catch (error) {
+        alert(error.message);
+    }
+    this.$nextTick(() => {
+        document.getElementById('closePassModalButton').click();
+      })
+  },
     async fetchUserData() {
       const auth = getAuth();
       const db = getFirestore();
