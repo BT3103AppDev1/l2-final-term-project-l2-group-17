@@ -76,38 +76,42 @@
     </div>
   </div>
   <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+    <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
-        <button type="button" class="btn-close"id="closePassModallButton" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form @submit.prevent="changePassword">
-          <div class="mb-3">
-            <label for="currentPassword" class="form-label">Current Password</label>
-            <input type="password" class="form-control" id="currentPassword" v-model="currentPassword">
-          </div>
-          <div class="mb-3">
-            <label for="newPassword" class="form-label">New Password</label>
-            <input type="password" class="form-control" id="newPassword" v-model="newPassword">
-          </div>
-          <div class="mb-3">
-            <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
-            <input type="password" class="form-control" id="confirmNewPassword" v-model="confirmNewPassword">
-          </div>
-          <button type="submit" class="btn btn-primary">Update Password</button>
-        </form>
-      </div>
+        <div class="modal-header">
+            <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+            <button type="button" class="btn-close" id="closePassModalButton" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form @submit.prevent="changePassword">
+                <div class="mb-3">
+                    <label for="currentPassword" class="form-label">Current Password</label>
+                    <input type="password" class="form-control" id="currentPassword" v-model="currentPassword">
+                </div>
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="newPassword" v-model="newPassword">
+                </div>
+                <div class="mb-3">
+                    <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirmNewPassword" v-model="confirmNewPassword">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Password</button>
+            </form>
+            <div v-if="message" class="alert" :class="{'text-danger': !isSuccess}">
+                {{ message }}
+            </div>
+        </div>
     </div>
-  </div>
+</div>
+
 </div>
 
   </template>
   
   <script>
   import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
-  import {  getAuth, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+  import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
   import { Modal } from 'bootstrap';
   
   export default {
@@ -117,7 +121,9 @@
         editUserData: null,
         currentPassword: '',
         newPassword: '',
-        confirmNewPassword: ''
+        confirmNewPassword: '',
+        message: '',
+        isSuccess: false
       };
     },
     created() {
@@ -129,33 +135,46 @@
       modal.show();
     },
     async changePassword() {
-    const auth = getAuth();
-    const user = auth.currentUser;
+            const auth = getAuth();
+            const user = auth.currentUser;
 
-    if (this.newPassword !== this.confirmNewPassword) {
-        alert("The new passwords do not match.");
-        return;
-    }
+            if (this.newPassword !== this.confirmNewPassword) {
+                this.message = "The new passwords do not match.";
+                this.isSuccess = false;
+                return;
+            }
 
-    try {
-        // Reauthenticate the user
-        const credential = EmailAuthProvider.credential(
-            user.email, 
-            this.currentPassword
-        );
-        await reauthenticateWithCredential(user, credential);
+            if (this.newPassword.length < 6) {
+              this.message = "Password should be at least 6 characters"
+              this.isSuccess = false;
+              return;
+            }
 
-        // Update password
-        await user.updatePassword(this.newPassword);
-        alert("Password updated successfully!");
-        this.closeChangePasswordModal();
-    } catch (error) {
-        alert(error.message);
-    }
-    this.$nextTick(() => {
-        document.getElementById('closePassModalButton').click();
-      })
-  },
+            const credential = EmailAuthProvider.credential(
+                user.email, 
+                this.currentPassword
+            );
+
+            try {
+                await reauthenticateWithCredential(user, credential);
+                if (confirm("Are you sure you want to change your password?")) {
+                await updatePassword(user, this.newPassword);
+                alert("Password updated successfully!");
+                this.isSuccess = true;
+                } else { return ;}
+            } catch (error) {
+                if (error.code === 'auth/invalid-login-credentials') {
+                    this.message = "The current password you entered is incorrect.";
+                } 
+                this.isSuccess = false;
+                return;
+            }
+
+            this.$nextTick(() => {
+                document.getElementById('closePassModalButton').click(); // Optionally close the modal after update
+            });
+        },
+    
     async fetchUserData() {
       const auth = getAuth();
       const db = getFirestore();
@@ -184,8 +203,14 @@
         document.getElementById('closeModalButton').click();
       })
     },
-    
-
+    },
+    computed: {
+    isDisabled() {
+      return this.currentPassword === '' || 
+             this.newPassword === '' || 
+             this.confirmNewPassword !== this.newPassword || 
+             this.newPassword.length < 6;
+    }
   }
   }
   </script>
@@ -197,5 +222,8 @@
     border-radius: 10px;
     margin-top: 0;
   }
+  .text-danger {
+    color: #dc3545; 
+}
   </style>
   
