@@ -35,7 +35,7 @@
 import { toRefs, ref, onMounted } from 'vue';
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min';
 import { db } from '../firebase';
-import { collection, addDoc, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, Timestamp } from "firebase/firestore";
 
 export default {
   name: 'CreatePostModal',
@@ -86,15 +86,18 @@ export default {
         category: postCategory.value,
         content: postContent.value,
         userId: currentUser.value.uid,
-        userName: userDetails.value.username, // Use the fetched username
-        timestamp: new Date(),
+        userName: userDetails.value.username, 
+        timestamp: Timestamp.fromDate(new Date()),
         likes: {}
       };
 
       try {
         const docRef = await addDoc(collection(db, "posts"), postData);
         console.log("Document written with ID: ", docRef.id);
-        emit('post-created', docRef.id);
+        emit('post-created', { id: docRef.id, ...postData });
+        postTitle.value = '';
+        postCategory.value = 'study guide'; 
+        postContent.value = '';
         hideModal();  
       } catch (e) {
         console.error("Error adding document: ", e);

@@ -4,7 +4,6 @@
       Comments
       <button @click="toggleVisibility" class="toggle-comments-btn">
         <font-awesome-icon :icon="commentsVisible ? 'chevron-up' : 'chevron-down'" class="icon"/>
-        {{ commentsVisible ? 'Hide Comments' : 'Show Comments' }}
       </button>
     </h3>
     <div v-if="commentsVisible" class="comments-list">
@@ -17,12 +16,14 @@
           <div class="comment-body">
             <template v-if="editingCommentId === comment.id">
               <textarea v-model="editableCommentText" class="comment-edit-textarea"></textarea>
-              <button @click="updateComment(comment.id, editableCommentText)" class="btn-icon">
-                <font-awesome-icon icon="save" class="icon-save"/> Save
-              </button>
-              <button @click="cancelEdit" class="btn-icon">
-                <font-awesome-icon icon="times" class="icon-cancel"/> Cancel
-              </button>
+              <div class="comment-edit-actions">
+                <button @click="updateComment(comment.id, editableCommentText)" class="btn-icon">
+                  <font-awesome-icon icon="save" class="icon-save"/> Save
+                </button>
+                <button @click="cancelEdit" class="btn-icon">
+                  <font-awesome-icon icon="times" class="icon-cancel"/> Cancel
+                </button>
+              </div>
             </template>
             <template v-else>
               {{ comment.text }}
@@ -148,6 +149,7 @@ export default {
     const editComment = (comment) => {
       editingCommentId.value = comment.id;
       editableCommentText.value = comment.text;
+      dropdownCommentId.value = null;
     };
 
     const updateComment = async (commentId, updatedText) => {
@@ -164,6 +166,7 @@ export default {
     };
 
     const deleteComment = async (commentId) => {
+      dropdownCommentId.value = null;
       if (window.confirm("Are you sure you want to delete this comment?")) {
         try {
           const commentRef = doc(db, 'comments', commentId);
@@ -222,14 +225,17 @@ export default {
   margin-top: 20px;
   background-color: #f9f9f9;
   border-radius: 8px;
-  padding: 20px;
+  padding: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .comments-title {
-  margin-bottom: 16px;
+  margin-bottom: 5px;
   color: #333;
-  font-size: 1.5rem;
+  font-size: 1.0rem;
+  display: flex;
+  align-items: center;
+  gap: 11px;
 }
 
 .comments-list {
@@ -242,6 +248,7 @@ export default {
 .comment {
   padding: 10px;
   border-bottom: 1px solid #e1e1e1;
+  white-space: pre-wrap; 
 }
 
 .comment:last-child {
@@ -277,6 +284,11 @@ export default {
   flex-direction: column;
 }
 
+.comment-edit-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
 .comment-textarea {
   resize: vertical;
   padding: 10px;
@@ -303,11 +315,10 @@ export default {
 }
 
 .toggle-comments-btn {
-  margin-bottom: 10px;
-  background-color: #007bff;
-  color: white;
+  background-color: #e7e7e7;
+  color: black;
   border: none;
-  padding: 10px 20px;
+  padding: 5px 10px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px; /* Adjust font-size as necessary */
@@ -318,7 +329,7 @@ export default {
 }
 
 .toggle-comments-btn:hover {
-  background-color: #0056b3;
+  background-color: #bfbfbf;
   transition: background-color 0.3s ease;
 }
 

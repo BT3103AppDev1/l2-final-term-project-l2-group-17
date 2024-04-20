@@ -2,8 +2,8 @@
   <div class="post-card">
     <div class="header">
       <h3>{{ post.title }}</h3>
-      <button @click="toggleLike" class="like-button">
-        👍 <span>{{ likeCount }}</span>
+      <button @click="toggleLike" class="like-button" :class="{ liked:liked }">
+        <font-awesome-icon :icon="['fas', 'thumbs-up']" /> <span>{{ likeCount }}</span>
       </button>
     </div>
     <div v-if="isEditing">
@@ -13,37 +13,56 @@
         <option value="module review">Module Review</option>
       </select>
       <textarea v-model="editablePost.content" placeholder="Post Content" class="form-control mb-2"></textarea>
-      <button @click="savePost" class="btn btn-success mr-2">Save</button>
-      <button @click="cancelEdit" class="btn btn-secondary">Cancel</button>
+      <button @click="savePost" class="btn-icon">
+        <font-awesome-icon icon="save" class="icon-save"/> Save
+      </button>
+      <button @click="cancelEdit" class="btn-icon">
+        <font-awesome-icon icon="times" class="icon-cancel"/> Cancel
+      </button>
     </div>
     <div v-else>
       <span :class="['badge', categoryClass(post.category)]" class="category-badge">{{ post.category }}</span>
-      <p>
+      <p class="post-content">
         {{ isExpanded || !needsTruncation ? post.content : truncatedContent }}
         <span v-if="needsTruncation" @click.stop="toggleExpand" class="toggle-read">
           {{ isExpanded ? ' (Read Less)' : '... (Read More)' }}
         </span>
       </p>
-      <footer>
+      <footer class="post-footer">
         Posted by: {{ post.userName }} | Date: {{ formatDate(post.timestamp) }}
-        <span v-if="canEdit">
-          <button @click="editPost" class="btn btn-outline-primary mr-2">Edit</button>
-          <button @click="deletePost" class="btn btn-outline-danger">Delete</button>
-        </span>
+        <div v-if="canEdit" class="post-actions">
+            <font-awesome-icon icon="ellipsis-v" class="action-icon" @click="toggleActionsDropdown" />
+            <div v-if="showActionsDropdown" class="actions-dropdown">
+              <div class="dropdown-item" @click="editPost">
+                <font-awesome-icon icon="edit" class="fa-icon" />
+                Edit
+              </div>
+              <div class="dropdown-item" @click="deletePost">
+                <font-awesome-icon icon="trash" class="fa-icon" />
+                  Delete
+              </div>
+            </div>
+        </div>
       </footer>
     </div>
+    <PostComments :postId="post.id" />
   </div>
-  <PostComments :postId="post.id" />
 </template>
 
 <script>
 import { db } from '../firebase';
-import { doc, updateDoc, deleteDoc, arrayRemove, arrayUnion, deleteField } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc, deleteField } from "firebase/firestore";
 import PostComments from './PostComments.vue';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faEllipsisV, faEdit, faTrash, faThumbsUp } from '@fortawesome/free-solid-svg-icons';
+
+library.add(faEllipsisV, faEdit, faTrash, faThumbsUp);
 
 export default {
   components: {
-    PostComments
+    PostComments,
+    FontAwesomeIcon,
   },
   emits: ['update-post', 'delete-post'],
   name: 'Post',
@@ -57,7 +76,8 @@ export default {
       isEditing: false,
       editablePost: null,
       likeCount: this.post.likes ? Object.keys(this.post.likes).length : 0,
-      liked: this.post.likes && this.currentUser && this.post.likes[this.currentUser.uid]
+      liked: this.post.likes && this.currentUser && this.post.likes[this.currentUser.uid],
+      showActionsDropdown: false,
     };
   },
   computed: {
@@ -76,6 +96,7 @@ export default {
       this.isExpanded = !this.isExpanded;
     },
     editPost() {
+      this.showActionsDropdown = false;
       this.isEditing = true;
       this.editablePost = { ...this.post };
     },
@@ -94,14 +115,17 @@ export default {
       });
     },
     deletePost() {
-      const postRef = doc(db, "posts", this.post.id);
-      deleteDoc(postRef)
-        .then(() => {
-          this.$emit('delete-post', this.post.id);
-        })
-        .catch(error => {
-          console.error("Error deleting post: ", error);
-        });
+      this.showActionsDropdown = false;
+      if (window.confirm("Are you sure you want to delete this comment?")) {
+        const postRef = doc(db, "posts", this.post.id);
+        deleteDoc(postRef)
+          .then(() => {
+            this.$emit('delete-post', this.post.id);
+          })
+          .catch(error => {
+            console.error("Error deleting post: ", error);
+          });
+      }
     },
     cancelEdit() {
       this.isEditing = false;
@@ -146,6 +170,9 @@ export default {
           console.error("Error updating like status: ", error);
         });
       }
+    },
+    toggleActionsDropdown() {
+      this.showActionsDropdown = !this.showActionsDropdown;
     }
 
   }
@@ -170,11 +197,20 @@ export default {
 .like-button {
   background: none;
   border: none;
-  color: blue;
   cursor: pointer;
   font-size: 1.5rem;
   display: flex;
   align-items: center;
+  gap: 5px;
+  color: #686868;
+}
+
+.like-button:hover {
+  color: #007bff
+}
+
+.like-button.liked {
+  color: #007bff; 
 }
 
 .toggle-read, .btn {
@@ -189,6 +225,10 @@ export default {
   padding: 0.25em 0.4em;
   font-size: 75%;
   align-self: flex-start;
+}
+
+.post-content {
+  white-space: pre-wrap; 
 }
 
 .bg-purple {
@@ -208,7 +248,59 @@ p, .form-control, .btn {
   margin-bottom: 10px;
 }
 
-.btn-outline-primary, .btn-outline-danger {
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #007bff; 
+  padding: 5px 10px;
+  font-size: 1rem; 
+  align-items: center;
+}
+
+.btn-icon:hover {
+  color: #0056b3;
+}
+
+.post-footer {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center; 
+}
+
+.post-actions {
+  position: relative; 
+}
+
+.action-icon {
+  cursor: pointer;
+  color: #007bff;
+}
+
+.actions-dropdown {
+  position: absolute;
+  top: 100%; 
+  right: 0; 
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  z-index: 10; 
+}
+
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f8f8;
+}
+
+.fa-icon {
   margin-right: 5px;
 }
+
 </style>
