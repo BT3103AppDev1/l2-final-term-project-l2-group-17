@@ -32,38 +32,35 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { toRefs, ref, onMounted } from 'vue';
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min';
-import { db, auth } from '../firebase';
+import { db } from '../firebase';
 import { collection, addDoc, doc, getDoc } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
 
 export default {
   name: 'CreatePostModal',
-  setup() {
+  props: {
+    currentUser: Object,
+  },
+  setup(props, { emit }) {
     const postTitle = ref('');
     const postCategory = ref('study guide');
     const postContent = ref('');
-    const currentUser = ref(null);
     const userDetails = ref({});
+    const { currentUser } = toRefs(props);
 
     let modalInstance = null;
 
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        currentUser.value = user;
-        await fetchUserDetails(user.uid); 
-      } else {
-      }
-    });
-
-    const fetchUserDetails = async (userId) => {
-      const userRef = doc(db, "users", userId);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        userDetails.value = userSnap.data();
-      } else {
-        console.error("No such user!");
+    const fetchUserDetails = async () => {
+      if (currentUser.value && currentUser.value.uid) {
+        const userRef = doc(db, "users", currentUser.value.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          userDetails.value = userSnap.data();
+          console.log("Fetched user details:", userDetails.value);
+        } else {
+          console.error("No such user!");
+        }
       }
     };
 
@@ -80,8 +77,8 @@ export default {
     };
 
     const submitPost = async () => {
-      if (!currentUser.value) {
-        console.error("No authenticated user");
+      if (!currentUser.value || !userDetails.value.username) {
+        console.error("No authenticated user or username is missing");
         return;
       }
       const postData = {
@@ -89,7 +86,7 @@ export default {
         category: postCategory.value,
         content: postContent.value,
         userId: currentUser.value.uid,
-        userName: userDetails.value.username,  
+        userName: userDetails.value.username, // Use the fetched username
         timestamp: new Date(),
         likes: {}
       };
@@ -97,15 +94,15 @@ export default {
       try {
         const docRef = await addDoc(collection(db, "posts"), postData);
         console.log("Document written with ID: ", docRef.id);
+        emit('post-created', docRef.id);
         hideModal();  
       } catch (e) {
         console.error("Error adding document: ", e);
-      };
-
-      hideModal();
+      }
     };
 
     onMounted(() => {
+      fetchUserDetails();
       const modalEl = document.getElementById('createPostModalRef');
       modalInstance = new bootstrap.Modal(modalEl);
     });
@@ -120,5 +117,4 @@ export default {
     };
   },
 };
-
 </script>
