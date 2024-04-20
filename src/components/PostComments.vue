@@ -1,8 +1,15 @@
 <template>
-    <div class="comments-section">
-      <h3 class="comments-title">Comments</h3>
-      <div class="comments-list">
-        <div v-for="comment in comments" :key="comment.id" class="comment">
+  <div class="comments-section">
+    <h3 class="comments-title">
+      Comments
+      <button @click="toggleVisibility" class="toggle-comments-btn">
+        <font-awesome-icon :icon="commentsVisible ? 'chevron-up' : 'chevron-down'" class="icon"/>
+        {{ commentsVisible ? 'Hide Comments' : 'Show Comments' }}
+      </button>
+    </h3>
+    <div v-if="commentsVisible" class="comments-list">
+      <div v-for="comment in comments" :key="comment.id" class="comment">
+        <div class="comment-content">
           <div class="comment-header">
             <span class="comment-author">{{ comment.authorName }}</span>
             <span class="comment-date">{{ formatDate(comment.timestamp) }}</span>
@@ -10,26 +17,41 @@
           <div class="comment-body">
             <template v-if="editingCommentId === comment.id">
               <textarea v-model="editableCommentText" class="comment-edit-textarea"></textarea>
-              <button @click="updateComment(comment.id, editableCommentText)" class="btn btn-success">Save</button>
-              <button @click="cancelEdit" class="btn btn-secondary">Cancel</button>
+              <button @click="updateComment(comment.id, editableCommentText)" class="btn-icon">
+                <font-awesome-icon icon="save" class="icon-save"/> Save
+              </button>
+              <button @click="cancelEdit" class="btn-icon">
+                <font-awesome-icon icon="times" class="icon-cancel"/> Cancel
+              </button>
             </template>
             <template v-else>
               {{ comment.text }}
             </template>
           </div>
-          <div class="comment-actions" v-if="currentUser && currentUser.uid === comment.userId">
-            <button v-if="editingCommentId !== comment.id" @click="editComment(comment)" class="btn btn-primary">Edit</button>
-            <button @click="deleteComment(comment.id)" class="btn btn-danger">Delete</button>
+        </div>
+        <div class="comment-actions">
+          <font-awesome-icon icon="ellipsis-v" class="action-icon" @click="toggleDropdown(comment.id)" />
+          <div v-if="dropdownCommentId === comment.id" class="action-dropdown">
+            <div class="dropdown-item" @click="() => editComment(comment)">
+              <font-awesome-icon icon="edit" class="fa-icon"/>
+               Edit
+            </div>
+            <div class="dropdown-item" @click="() => deleteComment(comment.id)">
+              <font-awesome-icon icon="trash" class="fa-icon"/>
+               Delete
+            </div>
           </div>
         </div>
       </div>
-    
-      <form @submit.prevent="submitComment" class="comment-form">
-        <textarea v-model="newCommentText" placeholder="Write a comment..." class="comment-textarea"></textarea>
-        <button type="submit" class="comment-submit-btn">Post Comment</button>
-      </form>
     </div>
+
+    <form v-if="commentsVisible" @submit.prevent="submitComment" class="comment-form">
+      <textarea v-model="newCommentText" placeholder="Write a comment..." class="comment-textarea"></textarea>
+      <button type="submit" class="comment-submit-btn">Post Comment</button>
+    </form>
+  </div>
 </template>
+
   
   
 <script>
@@ -37,8 +59,17 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { db, auth } from '../firebase';
 import { collection, addDoc, query, where, orderBy, onSnapshot, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faEllipsisV, faTrash, faEdit, faChevronUp, faChevronDown, faSave, faTimes } from '@fortawesome/free-solid-svg-icons';
+library.add(faEllipsisV, faTrash, faEdit, faChevronUp, faChevronDown, faSave, faTimes);
+
 
 export default {
+  components: {
+    FontAwesomeIcon,
+  },
+
   props: ['postId'],
   setup(props) {
     const newCommentText = ref('');
@@ -47,6 +78,8 @@ export default {
     const userDetails = ref({});
     const editingCommentId = ref('');
     const editableCommentText = ref('');
+    const commentsVisible = ref(false);
+    const dropdownCommentId = ref(null);
 
     // Fetch user details from Firestore based on current user ID
     const fetchUserDetails = async (userId) => {
@@ -65,6 +98,14 @@ export default {
         fetchUserDetails(user.uid);
       }
     });
+
+    const toggleVisibility = () => {
+      commentsVisible.value = !commentsVisible.value;
+    };
+
+    const toggleDropdown = (id) => {
+      dropdownCommentId.value = dropdownCommentId.value === id ? null : id;
+    };
 
     const submitComment = async () => {
       if (newCommentText.value.trim() && currentUser.value && userDetails.value.username) {
@@ -165,6 +206,10 @@ export default {
       deleteComment,
       cancelEdit,
       currentUser,
+      toggleVisibility,
+      commentsVisible,
+      toggleDropdown,
+      dropdownCommentId,
     };
   }
 };
@@ -255,6 +300,92 @@ export default {
 
 .comment-submit-btn:hover {
   background-color: #0056b3; /* Darker shade for hover state */
+}
+
+.toggle-comments-btn {
+  margin-bottom: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px; /* Adjust font-size as necessary */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px; /* Creates a little space between icon and text */
+}
+
+.toggle-comments-btn:hover {
+  background-color: #0056b3;
+  transition: background-color 0.3s ease;
+}
+
+/* Style for Font Awesome icons */
+.action-icon {
+  cursor: pointer;
+  color: var(--secondary-color, #007bff); 
+}
+
+.action-dropdown {
+  position: absolute;
+  right: 10px; 
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.dropdown-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+.fa-icon {
+  margin-right: 8px; 
+}
+
+.comment-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.comment-edit-textarea {
+  width: 100%; 
+  height: 100px; 
+  margin-bottom: 10px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #007bff; /* Adjust the color to fit your design */
+  padding: 5px 10px;
+  font-size: 1rem; /* Adjust the size as needed */
+  display: flex;
+  align-items: center;
+}
+
+.btn-icon:hover {
+  color: #0056b3; /* Darker shade on hover */
+}
+
+.icon-save {
+  margin-right: 5px;
+}
+
+.icon-cancel {
+  margin-right: 5px;
 }
 
 /* Mobile responsive adjustments */

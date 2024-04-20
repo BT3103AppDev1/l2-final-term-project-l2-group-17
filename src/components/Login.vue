@@ -149,6 +149,9 @@ export default {
 
 .main-content {
   width: calc(100% - 16.8%); 
+  overflow: hidden;
+  height: 100vh;
+  max-height: 100vh;
   margin-left: auto; 
   display: flex;
   flex-direction: column;
@@ -174,6 +177,7 @@ export default {
 /* Ensure the container that includes the sidebar and main content takes full height */
 .row.min-vh-100 {
   min-height: 100vh; /* Ensure it takes at least the full height of the viewport */
+  overflow: hidden;
 }
 
 /* Style for the sidebar */
@@ -199,6 +203,14 @@ export default {
 /* Ensure full height for the containers */
 html, body {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; 
+}
+.container-fluid {
+  height: 100vh; 
+  overflow: hidden; 
+  padding-top: 0; 
 }
 </style>
 
