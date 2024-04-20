@@ -38,6 +38,7 @@ import { getAuth } from 'firebase/auth';
 
 export default {
     name: 'FeedbackModal',
+    emits: ['close'],
     data() {
     return {
         feedback: {

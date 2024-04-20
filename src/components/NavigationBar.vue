@@ -1,7 +1,7 @@
 <template>
   <div class="navbar-fixed">
     <!-- Navbar brand/logo -->
-    <router-link to="/home" class="navbar-brand">
+    <router-link to="/module-planning" class="navbar-brand">
       <img src="@/assets/modunus_logo.png" alt="Modunus Logo" class="brand-logo">
     </router-link>
     <div v-if="user" class="welcome-message">Welcome, {{ user.name }}</div>
