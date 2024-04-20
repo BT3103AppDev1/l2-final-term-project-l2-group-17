@@ -15,7 +15,7 @@
           </div>
          
           <div class="col-md-5 d-none d-md-block">
-            <img src="/assets/calculator.svg" alt="calculator" class="img-fluid">
+            <img src="/assets/calculator.svg" alt="calculator" class="img-fluid" style="max-width: 70%;">
           </div>
         </div>
       </div>
