@@ -42,7 +42,7 @@ export default {
       const auth = getAuth();
       try {
         await sendPasswordResetEmail(auth, this.email);
-        alert('Password reset email sent!');
+        alert('Password reset email sent! Please check your junk folder if you do not see it in inbox.');
         this.$router.push('/login');
       } catch (error) {
         // Check if the error code is 'auth/user-not-found' and display an appropriate message

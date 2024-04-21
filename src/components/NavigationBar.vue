@@ -4,7 +4,7 @@
     <router-link to="/module-planning" class="navbar-brand">
       <img src="@/assets/modunus_logo.png" alt="Modunus Logo" class="brand-logo">
     </router-link>
-    <div v-if="user" class="welcome-message">Welcome, {{ user.name }}</div>
+    <div v-if="user" class="welcome-message">{{ welcomeMessage }}</div>
   
     <!-- Navbar links -->
     <nav class="nav-menu">
@@ -99,6 +99,11 @@ export default {
           console.error('Logout Failed', error);
         }
       }
+    }
+  },
+  computed: {
+    welcomeMessage() {
+      return this.user ? `Welcome, ${this.user.username}` : "Welcome, Guest";
     }
   }
 };
