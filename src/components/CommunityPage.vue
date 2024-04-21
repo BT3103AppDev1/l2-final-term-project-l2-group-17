@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div v-if="currentUser">
     <CommunityHeader @open-modal-event="openCreatePostModal"/>
-    <CreatePostModal ref="createPostModal" />
+    <CreatePostModal ref="createPostModal" :currentUser="currentUser" @post-created="handleNewPost" />
     <SearchFilterBar 
       @update-search="handleSearch" 
       @update-sort="handleSort" 
@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import { computed } from 'vue';
 import { db } from '../firebase'; 
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -107,6 +106,10 @@ export default {
     },
     handleDelete(postId) {
       this.allPosts = this.allPosts.filter(post => post.id !== postId);
+    },
+    handleNewPost(newPost) {
+      this.allPosts.unshift(newPost);
+      this.allPosts = [...this.allPosts];
     }
   },
   mounted() {

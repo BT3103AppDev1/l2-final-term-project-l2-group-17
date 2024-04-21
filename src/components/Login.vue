@@ -147,15 +147,17 @@ export default {
 }
 
 
-/* This assumes the sidebar has a fixed width of 25% of the viewport width. Adjust if necessary */
 .main-content {
   width: calc(100% - 16.8%); 
+  overflow: hidden;
+  height: 100vh;
+  max-height: 100vh;
   margin-left: auto; 
   display: flex;
   flex-direction: column;
   align-items: center; /* Center align children horizontally */
   justify-content: center; /* Center align children vertically */
-  padding: 0; /* Adjust or remove padding as needed */
+  padding: 0; 
 }
 
 /* Adjust the login card to center within the main content area */
@@ -167,14 +169,15 @@ export default {
 
 /* Ensure the logo is not too large and is centered */
 .logo {
-  max-width: 300px; /* Adjust this width as needed */
-  margin: 0 auto 2rem auto; /* This centers the logo and adds space below */
+  max-width: 300px; 
+  margin: 0 auto 2rem auto; 
   padding-top: 40px;
 }
 
 /* Ensure the container that includes the sidebar and main content takes full height */
 .row.min-vh-100 {
   min-height: 100vh; /* Ensure it takes at least the full height of the viewport */
+  overflow: hidden;
 }
 
 /* Style for the sidebar */
@@ -194,12 +197,20 @@ export default {
 }
 
 .col-md-9.col-lg-10.offset-md-3.offset-lg-2 {
-  padding: 0; /* Remove padding if needed */
+  padding: 0; 
 }
 
 /* Ensure full height for the containers */
 html, body {
   height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; 
+}
+.container-fluid {
+  height: 100vh; 
+  overflow: hidden; 
+  padding-top: 0; 
 }
 </style>
 
