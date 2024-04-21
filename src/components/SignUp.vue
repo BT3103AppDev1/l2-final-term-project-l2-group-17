@@ -30,7 +30,7 @@
                 <div class="col-md-6 mb-3">
                   <label for="username" class="form-label">Username*</label>
                   <input type="text" class="form-control" :class="{'is-invalid': usernameTaken}" id="username" v-model="registerInfo.username" @blur="checkUsername" required placeholder="Username">
-                  <div class="invalid-feedback">
+                  <div v-if="usernameTaken" class="invalid-feedback">
                     This username is already taken. Please choose another one.
                   </div>
                 </div>
@@ -50,6 +50,9 @@
                       <font-awesome-icon :icon="passwordIcon" />
                     </span>
                   </div>
+                  <div v-if="!isPasswordValid" class="invalid-feedback" style="display:block;">
+                    Password should be at least 8 characters
+                  </div>
                 </div>
                   
                 <!-- Confirm Password Input -->
@@ -60,6 +63,9 @@
                     <span class="input-group-text" @click="toggleConfirmPasswordVisibility">
                       <font-awesome-icon :icon="confirmPasswordIcon" />
                     </span>
+                  </div>
+                  <div v-if="!passwordsMatch" class="invalid-feedback" style="display:block;">
+                    Password do not match
                   </div>
                 </div>
               </div>
@@ -188,7 +194,10 @@ export default {
       return formComplete;
     },
     passwordsMatch() {
-        return this.registerInfo.password === this.registerInfo.confirmPassword;
+      return this.registerInfo.password === this.registerInfo.confirmPassword;
+    },
+    isPasswordValid() {
+      return this.registerInfo.password.length >= 8;
     }
   },
 
@@ -200,6 +209,12 @@ export default {
     toggleConfirmPasswordVisibility() {
       this.confirmPasswordFieldType = this.confirmPasswordFieldType === 'password' ? 'text' : 'password';
       this.confirmPasswordIcon = this.confirmPasswordFieldType === 'text' ? 'eye' : 'eye-slash';
+    },
+    async isUsernameUnique(username) {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.empty; // returns true if no documents match the query (i.e., username is unique)
     },
     async isUsernameUnique(username) {
       // Create a query against the collection.
@@ -283,6 +298,12 @@ export default {
   border-color: #ced4da; 
   outline: none; 
 }
+
+.invalid-feedback {
+  color: #dc3545; 
+  display: none;
+}
+
 </style>
   
   
