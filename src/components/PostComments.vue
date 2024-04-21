@@ -30,7 +30,7 @@
             </template>
           </div>
         </div>
-        <div class="comment-actions">
+        <div class="comment-actions" v-if="comment.userId === currentUser.uid">
           <font-awesome-icon icon="ellipsis-v" class="action-icon" @click="toggleDropdown(comment.id)" />
           <div v-if="dropdownCommentId === comment.id" class="action-dropdown">
             <div class="dropdown-item" @click="() => editComment(comment)">
