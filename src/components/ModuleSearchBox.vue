@@ -29,7 +29,7 @@
 
 <script>
 export default {
-  props: ["prefix", "label", "allModules"],
+  props: ["prefix", "label", "category", "allModules"],
   data() {
     return {
       moduleSearch: "",
@@ -57,6 +57,7 @@ export default {
     },
     selectModule(module) {
       this.selectedModule = module;
+      this.selectedModule.category = category;
       this.moduleSearch = `${module.moduleCode} ${module.title}`; // Display the selected module in the input field
       this.filteredModules = [];
       this.$emit("module-selected", module); // Emit the selected module for any parent component handling
