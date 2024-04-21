@@ -31,7 +31,9 @@
       <footer class="post-footer">
         Posted by: {{ post.userName }} | Date: {{ formatDate(post.timestamp) }}
         <div v-if="canEdit" class="post-actions">
-            <font-awesome-icon icon="ellipsis-v" class="action-icon" @click="toggleActionsDropdown" />
+          <button class="icon-button" @click="toggleActionsDropdown">
+            <font-awesome-icon icon="ellipsis-v" class="action-icon" />
+          </button>
             <div v-if="showActionsDropdown" class="actions-dropdown">
               <div class="dropdown-item" @click="editPost">
                 <font-awesome-icon icon="edit" class="fa-icon" />
@@ -270,6 +272,22 @@ p, .form-control, .btn {
 
 .post-actions {
   position: relative; 
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; 
+  height: 30px; 
+  border-radius: 50%; 
+  border: none; 
+  background-color: #eee; 
+  cursor: pointer;
+}
+
+.icon-button:hover, .icon-button:focus {
+  background-color: #ccc; 
 }
 
 .action-icon {
