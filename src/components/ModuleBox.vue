@@ -18,14 +18,14 @@
         />
       </div>
 
-      <!-- CS Foundation Accordion -->
+      <!-- Core Modules Accordion -->
       <button class="accordion" @click="toggleAccordionCS">
-        CS Foundation
+        Core Modules
         <span class="arrow">{{ isAccordionCSOpen ? "▲" : "▼" }}</span>
       </button>
       <div v-show="isAccordionCSOpen" class="accordion-content">
         <ModuleNonSearchBox
-          v-for="module in csFoundationModules"
+          v-for="module in coreModules"
           :key="module.id"
           :module="module"
         />
@@ -74,6 +74,8 @@ import ModuleSearchBox from "./ModuleSearchBox.vue";
 import ModuleNonSearchBox from "./ModuleNonSearchBox.vue";
 import ModulePlanningHeader from "./ModulePlanningHeader.vue";
 import { btCoreModules } from "./constants";
+import { csCoreModules } from "./constants";
+import { isCoreModules } from "./constants";
 
 export default {
   name: "ModuleBox",
@@ -87,7 +89,7 @@ export default {
       moduleSearch: "",
       selectedModule: null, // Holds the currently selected module object
       filteredModules: [],
-      csFoundationModules: [
+      coreModules: [
         // Populate this array with your CS Foundation modules
         { id: "CS1010X", title: "Programming Methodology" },
         { id: "CS1101S", title: "Programming Methodology" },
