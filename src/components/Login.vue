@@ -167,9 +167,10 @@ export default {
   max-width: 600px; 
 }
 
-/* Ensure the logo is not too large and is centered */
+
 .logo {
   max-width: 300px; 
+
   margin: 0 auto 2rem auto; 
   padding-top: 40px;
 }
