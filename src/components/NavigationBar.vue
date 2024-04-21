@@ -161,7 +161,7 @@ export default {
   border-radius: 0.25rem;
 }
 .nav-section.dashboard {
-  margin-bottom: 1rem; /* Adjust to match the spacing you desire */
+  margin-bottom: 1rem; 
 } 
 
 .nav-section.general {
