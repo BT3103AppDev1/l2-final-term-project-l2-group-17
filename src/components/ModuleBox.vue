@@ -1,6 +1,4 @@
 <template>
-  <ModulePlanningHeader />
-
   <div class="page-container">
     <div class="accordion-container">
       <!-- University Level Requirements Accordion -->
@@ -136,9 +134,14 @@
       <!-- Study Plan Drop Zone, same as before -->
       <div
         class="study-plan"
+        ref="studyplandiv"
+        id="studyplandiv"
         @drop.prevent="dropModule"
         @dragover.prevent="allowDrop"
       >
+        <button class="btn btn-primary" @click="capture">
+          Download Study Plan
+        </button>
         <div class="drop-zone">Drop modules here</div>
         <div
           v-for="(module, index) in studyPlan"
@@ -157,6 +160,7 @@
 </template>
 
 <script>
+import html2canvas from "html2canvas";
 import ModuleSearchBox from "./ModuleSearchBox.vue";
 import ModuleNonSearchBox from "./ModuleNonSearchBox.vue";
 import ModuleDialog from "./ModuleDialog.vue";
@@ -229,6 +233,16 @@ export default {
     };
   },
   methods: {
+    capture() {
+      html2canvas(this.$refs.studyplandiv).then((canvas) => {
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = "study-plan.png";
+        link.href = image;
+        link.click();
+      });
+    },
+
     handlePEModuleSelected(module) {
       if (!this.peModules.some((m) => m.moduleCode === module.moduleCode)) {
         this.peModules.push(module);
