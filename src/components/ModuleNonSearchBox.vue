@@ -13,17 +13,8 @@
   </div>
 </template>
 
-
 <script>
 export default {
-  data() {
-  return {
-    module: {
-      moduleCode: '' 
-    },
-  };
-},
-
   props: ["module", "category", "header"],
   methods: {
     startDrag(event) {
@@ -36,8 +27,16 @@ export default {
         "application/json",
         JSON.stringify(moduleData)
       );
+      
     },
-  },
+  onDrop(event) {
+    event.preventDefault();
+    const data = event.dataTransfer.getData("application/json");
+    const moduleData = JSON.parse(data);
+    // Now use this moduleData to update the component's data or display it
+    console.log(moduleData); // Log to see if you are getting the expected data
+  }
+}
 };
 </script>
 
