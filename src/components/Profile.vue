@@ -24,8 +24,7 @@
           <p class="card-text"><strong>Second Major:</strong> {{ user.secondMajor || "N/A" }}</p>
           <p class="card-text"><strong>Academic Plan:</strong> {{ user.academicPlan }}</p>
           <button class="btn btn-primary me-2" @click="editUser">Edit Profile</button>
-<button class="btn btn-danger" @click="showChangePasswordModal">Change Password</button>
-
+          <button class="btn btn-danger" @click="showChangePasswordModal">Change Password</button>
         </div>
       </div>
       <div v-else>
@@ -50,24 +49,40 @@
               <input type="text" class="form-control" id="username" :placeholder="user.username" v-model="editUserData.username"  v-if="editUserData && user">
             </div>
             <div class="mb-3">
-              <label for="Faculty" class="form-label">Faculty</label>
-              <input type="text" class="form-control" id="Faculty" :placeholder="user.faculty"v-model="editUserData.faculty"  v-if="editUserData && user">
+              <label for="faculty" class="form-label">Faculty</label>
+                <select class="form-select" id="Faculty" :placeholder="user.faculty" v-model="editUserData.faculty"  v-if="editUserData && user">
+                  <option disabled value="">Please select one</option>
+                  <option v-for="faculty in facultyList" :key="faculty">{{ faculty }}</option>
+                </select>
             </div>
+
             <div class="mb-3">
-              <label for="PriDegree" class="form-label">Primary Degree</label>
-              <input type="text" class="form-control" id="primarydegree" :placeholder="user.primaryDegree" v-model="editUserData.primaryDegree"  v-if="editUserData && user">
+              <label for=“PriDegree” class="form-label">Primary Degree/Major</label>
+                <select class="form-select" id="primarydegree" :placeholder="user.primaryDegree" v-model="editUserData.primaryDegree"  v-if="editUserData && user">
+                  <option disabled value="">Please select one</option>
+                  <option v-for="degree in majorDict[editUserData.faculty]" :key="degree">{{ degree }}</option>
+                </select>
             </div>
-            <div class="mb-3">
-              <label for="SecDegree" class="form-label">Secondary Degree</label>
-              <input type="text" class="form-control" id="secondarydegree" :placeholder="user.secondDegree" v-model="editUserData.secondDegree"  v-if="editUserData && user">
+            <div class="mb-3" v-if="user.academicPlan === 'Double Degree'">
+              <label for=“SecDegree” class="form-label">Second Degree</label>
+                <select class="form-select"  id="secondarydegree" :placeholder="user.secondDegree" v-model="editUserData.secondDegree"  v-if="editUserData && user">
+                  <option disabled value="">Please select one</option>
+                  <option v-for="degree in majorList" :key="degree">{{ degree }}</option>
+                </select>
             </div>
-            <div class="mb-3">
+            <div class="mb-3" v-if="user.academicPlan === 'Double Major'">
               <label for="SecMajor" class="form-label">Second Major</label>
-              <input type="text" class="form-control" id="secondmajor" :placeholder="user.secondMajor" v-model="editUserData.secondMajor"  v-if="editUserData && user">
+                <select class="form-select" id="secondmajor" :placeholder="user.secondMajor" v-model="editUserData.secondMajor"  v-if="editUserData && user">
+                  <option disabled value="">Please select one</option>
+                  <option v-for="major in majorList" :key="major">{{ major }}</option>
+                </select>
             </div>
             <div class="mb-3">
               <label for="academicPlan" class="form-label">Academic Plan</label>
-              <input type="text" class="form-control" id="acadPlan" :placeholder="user.academicPlan" v-model="editUserData.academicPlan"  v-if="editUserData && user">
+                <select class="form-select" id="acadPlan" :placeholder="user.academicPlan" v-model="editUserData.academicPlan"  v-if="editUserData && user">
+                  <option disabled value="">Please select one</option>
+                  <option v-for="plan in acadPlanList" :key="plan">{{ plan }}</option>
+                </select>
             </div>
             <button type="submit" class="btn btn-primary">Save Changes</button>
           </form>
@@ -113,6 +128,7 @@
   import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
   import { getAuth, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
   import { Modal } from 'bootstrap';
+  import { facultyList, majorDict, acadPlanList, majorList } from './constants';
   
   export default {
     data() {
@@ -123,7 +139,16 @@
         newPassword: '',
         confirmNewPassword: '',
         message: '',
-        isSuccess: false
+        isSuccess: false,
+        faculty: '',
+        primaryDegree: '',
+        academicPlan: '',
+        secondDegree: '',
+        secondMajor: '',
+        facultyList,
+        majorDict,
+        acadPlanList,
+        majorList,
       };
     },
     created() {
