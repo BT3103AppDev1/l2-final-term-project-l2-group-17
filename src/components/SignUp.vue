@@ -22,6 +22,9 @@
                 <div class="col-md-6 mb-3">
                   <label for="studentId" class="form-label">Student ID*</label>
                   <input type="text" class="form-control" id="studentId" v-model="registerInfo.NUSId" required placeholder="EXXXXXXX">
+                  <div v-if="!validStudentId && registerInfo.NUSId" class="invalid-feedback" style="display: block;">
+                    Student ID invalid. eg.(E1234567)
+                  </div>
                 </div>
               </div>
               
@@ -30,9 +33,6 @@
                 <div class="col-md-6 mb-3">
                   <label for="username" class="form-label">Username*</label>
                   <input type="text" class="form-control" :class="{'is-invalid': usernameTaken}" id="username" v-model="registerInfo.username" @blur="checkUsername" required placeholder="Username">
-                  <div v-if="usernameTaken" class="invalid-feedback">
-                    This username is already taken. Please choose another one.
-                  </div>
                 </div>
                 
                 <div class="col-md-6 mb-3">
@@ -175,7 +175,6 @@ export default {
       majorDict,
       acadPlanList,
       majorList,
-      usernameTaken: false,
     };
   },
   computed: {
@@ -198,6 +197,10 @@ export default {
     },
     isPasswordValid() {
       return this.registerInfo.password.length >= 8;
+    },
+    validStudentId() {
+      const regex = /^E\d{7}$/;
+      return regex.test(this.registerInfo.NUSId);
     }
   },
 
@@ -210,28 +213,9 @@ export default {
       this.confirmPasswordFieldType = this.confirmPasswordFieldType === 'password' ? 'text' : 'password';
       this.confirmPasswordIcon = this.confirmPasswordFieldType === 'text' ? 'eye' : 'eye-slash';
     },
-    async isUsernameUnique(username) {
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('username', '==', username));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.empty; // returns true if no documents match the query (i.e., username is unique)
-    },
-    async isUsernameUnique(username) {
-      // Create a query against the collection.
-      const usersRef = collection(db, 'users');
-      const q = query(usersRef, where('username', '==', username));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.empty; // returns true if no documents match the query
-    },
-    async checkUsername() {
-      if (this.registerInfo.username) {
-        const usernameUnique = await this.isUsernameUnique(this.registerInfo.username);
-        this.usernameTaken = !usernameUnique;
-      }
-    },
     async signUp() {
-      if (!this.isFormComplete || !this.passwordsMatch || this.usernameTaken) {
-      alert('Please make sure all fields are filled in correctly and that the username is not already taken.');
+      if (!this.isFormComplete || !this.passwordsMatch || !this.validStudentId) {
+      alert('Please make sure all fields are filled in correctly.');
       return;
       }
       try {   
@@ -251,7 +235,7 @@ export default {
         });
 
         alert('Registration successful!');
-        this.$router.push('/login');
+        this.$router.push('/module-planning');
       } catch (error) {
         if (error.code === 'auth/email-already-in-use') {
           // Handle the case where the email is already in use
