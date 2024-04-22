@@ -1,12 +1,29 @@
 <template>
-  <div class="module-item" draggable="true" @dragstart="startDrag">
+  <div v-if="module" class="module-item" draggable="true" @dragstart="startDrag">
+    <!-- Only render if module exists -->
     <span class="title">{{ header }}</span>
-    <div class="module-details">{{ module.moduleCode }} {{ module.title }}</div>
+    <div class="module-details">
+      <!-- Safely render module details if module is not null -->
+      {{ module.moduleCode }} {{ module.title }}
+    </div>
+  </div>
+  <div v-else class="module-item">
+    <!-- Optional: Display a placeholder or message if module is not available -->
+    Loading module details...
   </div>
 </template>
 
+
 <script>
 export default {
+  data() {
+  return {
+    module: {
+      moduleCode: '' 
+    },
+  };
+},
+
   props: ["module", "category", "header"],
   methods: {
     startDrag(event) {

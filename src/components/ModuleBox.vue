@@ -186,6 +186,10 @@ import ModulePlanningHeader from "./ModulePlanningHeader.vue";
 import { btCoreModules } from "./constants";
 import { csCoreModules } from "./constants";
 import { isCoreModules } from "./constants";
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+
+
 
 export default {
   name: "ModuleBox",
@@ -259,6 +263,7 @@ export default {
       this.userFound = !!user;
       this.loadUserData();
     });
+    this.fetchModules();
   },
   methods: {
     getSemester(index) {
@@ -410,10 +415,8 @@ export default {
           this.primaryDegree = userData.primaryDegree;
         }
       }
+      console.log("hi")
     },
-  },
-  created() {
-    this.fetchModules();
   },
 };
 </script>
