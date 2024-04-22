@@ -186,10 +186,8 @@ import ModulePlanningHeader from "./ModulePlanningHeader.vue";
 import { btCoreModules } from "./constants";
 import { csCoreModules } from "./constants";
 import { isCoreModules } from "./constants";
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
-
-
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 
 export default {
   name: "ModuleBox",
@@ -212,7 +210,7 @@ export default {
       mcLimit: { ulr: 24, cm: 20, pe: 24, ue: 40 }, // keeps track of mc requirements
 
       // supposed to fetch user major from user database
-      coreModules: btCoreModules,
+      coreModules: [],
       cmCategory: "cm",
 
       // information for ULR modules
@@ -261,7 +259,9 @@ export default {
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
       this.userFound = !!user;
-      this.loadUserData();
+      this.loadUserData().then(() => {
+        this.getCoreModules(); // Call after user data is fully loaded
+      });
     });
     this.fetchModules();
   },
@@ -415,7 +415,24 @@ export default {
           this.primaryDegree = userData.primaryDegree;
         }
       }
-      console.log("hi")
+      console.log("hi");
+    },
+
+    async getCoreModules() {
+      switch (this.primaryDegree) {
+        case "Business Analytics":
+          this.coreModules = btCoreModules;
+          break;
+        case "Computer Science":
+          this.coreModules = csCoreModules;
+          break;
+        case "Information Systems":
+          this.coreModules = isCoreModules;
+          break;
+        default:
+          this.coreModules = [];
+          break;
+      }
     },
   },
 };
