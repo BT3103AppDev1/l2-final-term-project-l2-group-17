@@ -1,5 +1,5 @@
 <template>
-  <div>
+<div>
     <span class="title">Current Degree Programme: {{ primaryDegree }}</span>
     <div class="page-container">
       <div class="accordion-container">
