@@ -29,7 +29,7 @@
                 <th scope="col">Semester</th>
                 <th scope="col">GPA</th>
                 <th scope="col">Credits</th>
-                <th scope="col">Options</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -39,9 +39,9 @@
                 <td>{{ semester.workload }}</td>
                 <td>
                   <div class="dropdown custom-dropdown">
-                    <span id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
-                      <font-awesome-icon icon="caret-down"/>
-                    </span>
+                    <a id="dropdownMenuButton" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Options
+                     </a>
                     <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                       <li>
                         <button class="dropdown-item" @click="viewSemester(semester.id)">
@@ -291,7 +291,6 @@ export default {
   const db = getFirestore();
   const user = auth.currentUser;
   if (user) {
-    // Adjust the collection from "users" to "gpa"
     const userDoc = await getDoc(doc(db, "gpa", user.uid));
     if (userDoc.exists()) {
       const userData = userDoc.data();
