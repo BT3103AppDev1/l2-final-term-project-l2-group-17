@@ -63,14 +63,14 @@
                   <option v-for="degree in majorDict[editUserData.faculty]" :key="degree">{{ degree }}</option>
                 </select>
             </div>
-            <div class="mb-3" v-if="user.academicPlan === 'Double Degree'">
+            <div class="mb-3">
               <label for=“SecDegree” class="form-label">Second Degree</label>
                 <select class="form-select"  id="secondarydegree" :placeholder="user.secondDegree" v-model="editUserData.secondDegree"  v-if="editUserData && user">
                   <option disabled value="">Please select one</option>
                   <option v-for="degree in majorList" :key="degree">{{ degree }}</option>
                 </select>
             </div>
-            <div class="mb-3" v-if="user.academicPlan === 'Double Major'">
+            <div class="mb-3">
               <label for="SecMajor" class="form-label">Second Major</label>
                 <select class="form-select" id="secondmajor" :placeholder="user.secondMajor" v-model="editUserData.secondMajor"  v-if="editUserData && user">
                   <option disabled value="">Please select one</option>
@@ -142,7 +142,7 @@
         isSuccess: false,
         faculty: '',
         primaryDegree: '',
-        academicPlan: '',
+        academicPlan: null,
         secondDegree: '',
         secondMajor: '',
         facultyList,
