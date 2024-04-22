@@ -1,128 +1,172 @@
 <template>
-  <!-- split into two left and right columns for the headers !-->
-  <div class="container">
-    <div class="row">
-      <div class="col-md-6">
-        <!-- content for the left column (required modules)-->
-        <div class="left-aligned-column">
-          <div class="title">Required Modules</div>
-
-          <!-- list of degree requirements and their respective modules !-->
-          <div class="accordion" id="degree-requirements">
-            <div
-              v-for="requirement in requirements"
-              :key="index"
-              class="accordion-item"
+<div>
+    <span class="title">Current Degree Programme: {{ primaryDegree }}</span>
+    <div class="page-container">
+      <div class="accordion-container">
+        <!-- University Level Requirements Accordion -->
+        <button class="accordion" @click="toggleAccordionULR">
+          University Level Requirements
+          <span class="arrow">{{ isAccordionULROpen ? "▲" : "▼" }}</span>
+          <span
+            :class="{
+              'badge badge-success': mcCount['ulr'] >= mcLimit['ulr'], // if all req met then success (green)
+              'badge badge-danger': mcCount['ulr'] < mcLimit['ulr'], // else danger (red)
+            }"
+            >{{ mcCount["ulr"] }}/{{ mcLimit["ulr"] }} MCs</span
+          >
+        </button>
+        <div v-show="isAccordionULROpen" class="accordion-content">
+          <div v-for="(category, index) in ulrModules" :key="index">
+            <span class="subtitle">{{ category.label }}</span>
+            <span
+              :class="{
+                'badge badge-success': category.moduleCount > 0,
+                'badge badge-danger': category.moduleCount === 0,
+              }"
+              >{{
+                category.moduleCount > 0 ? "Fulfilled" : "Not Fulfilled"
+              }}</span
             >
-              <h2 class="accordion-header" :id="'heading' + index">
-                <button
-                  class="accordion-button"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#collapseOne"
-                  aria-expanded="true"
-                  aria-controls="collapseOne"
-                  @click="toggleAccordion(index)"
-                >
-                  {{ requirement }}
-                </button>
-              </h2>
-              <!-- click to toggle the dropdown feature, references array below -->
-              <!-- currently not working for some reason :((( !-->
-              <div
-                :id="'collapse' + index"
-                class="accordion-collapse collapse"
-                :class="{ show: isOpen[index] }"
-              >
-                <div class="accordion-body">
-                  <!-- modules that fall under this category will be included under the heading !-->
-                  <div
-                    @drop="onDrop($event, requirement)"
-                    @dragenter.prevent
-                    @dragover.prevent
-                  >
-                    <div
-                      v-for="item in getList(requirement)"
-                      :key="item.id"
-                      class="module"
-                      draggable="true"
-                      @dragstart="startDrag($event, item)"
-                    >
-                      <span> {{ item.title }}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ModuleNonSearchBox
+              v-if="category.module"
+              :key="index"
+              :category="index"
+              :module="category.module"
+            />
+            <button class="add-module-btn" @click="showULRDialog[index] = true">
+              Select A Module
+            </button>
+            <ModuleDialog
+              v-if="showULRDialog[index]"
+              @close="showULRDialog[index] = false"
+              :allModules="allModules"
+              @module-selected="
+                (module) => handleULRModuleSelected(module, index)
+              "
+              :prefix="ulrModulePrefixes[index]"
+            />
           </div>
+        </div>
+
+        <!-- Core Modules Accordion -->
+        <button class="accordion" @click="toggleAccordionCS">
+          Core Modules
+          <span class="arrow">{{ isAccordionCSOpen ? "▲" : "▼" }}</span>
+          <span
+            :class="{
+              'badge badge-success': mcCount['cm'] >= mcLimit['cm'], // if all req met then success (green)
+              'badge badge-danger': mcCount['cm'] < mcLimit['cm'], // else danger (red)
+            }"
+            >{{ mcCount["cm"] }}/{{ mcLimit["cm"] }} MCs</span
+          >
+        </button>
+        <div v-show="isAccordionCSOpen" class="accordion-content">
+          <ModuleNonSearchBox
+            v-for="code in coreModules"
+            :key="code"
+            :category="cmCategory"
+            :module="findModule(code)"
+          />
+        </div>
+
+        <!-- Programme Electives Accordion !-->
+        <button class="accordion" @click="toggleAccordionPE">
+          Programme Electives
+          <span class="arrow">{{ isAccordionPEOpen ? "▲" : "▼" }}</span>
+          <span
+            :class="{
+              'badge badge-success': mcCount['pe'] >= mcLimit['pe'], // if all req met then success (green)
+              'badge badge-danger': mcCount['pe'] < mcLimit['pe'], // else danger (red)
+            }"
+            >{{ mcCount["pe"] }}/{{ mcLimit["pe"] }} MCs</span
+          >
+        </button>
+        <div v-show="isAccordionPEOpen" class="accordion-content">
+          <ModuleNonSearchBox
+            v-for="module in peModules"
+            :key="module.moduleCode"
+            :category="peCategory"
+            :module="module"
+          />
+          <button class="add-module-btn" @click="showPEDialog = true">
+            <span class="plus-symbol">+</span> Add Module
+          </button>
+          <ModuleDialog
+            v-if="showPEDialog"
+            @close="showPEDialog = false"
+            :allModules="allModules"
+            @module-selected="handlePEModuleSelected"
+            :prefix="peModulePrefixes"
+          />
+        </div>
+
+        <!-- Unrestricted Electives Accordion !-->
+        <button class="accordion" @click="toggleAccordionUE">
+          Unrestricted Electives
+          <span class="arrow">{{ isAccordionUEOpen ? "▲" : "▼" }}</span>
+          <span
+            :class="{
+              'badge badge-success': mcCount['ue'] >= mcLimit['ue'], // if all req met then success (green)
+              'badge badge-danger': mcCount['ue'] < mcLimit['ue'], // else danger (red)
+            }"
+            >{{ mcCount["ue"] }}/{{ mcLimit["ue"] }} MCs</span
+          >
+        </button>
+        <div v-show="isAccordionUEOpen" class="accordion-content">
+          <ModuleNonSearchBox
+            v-for="module in ueModules"
+            :key="module.moduleCode"
+            :category="ueCategory"
+            :module="module"
+          />
+          <button class="add-module-btn" @click="showUEDialog = true">
+            <span class="plus-symbol">+</span> Add Module
+          </button>
+          <ModuleDialog
+            v-if="showUEDialog"
+            @close="showUEDialog = false"
+            :allModules="allModules"
+            @module-selected="handleUEModuleSelected"
+            :prefix="ueModulePrefixes"
+          />
         </div>
       </div>
 
-      <!-- content for the right column (study plan) !-->
-      <div class="col-md-6">
-        <!-- list of modules taken for each semester !-->
-        <div class="left-aligned-column">
-          <!-- header with study plan and plan validation button !-->
-          <div class="row align-items-center">
-            <div class="col-auto">
-              <div class="title">Study Plan</div>
-            </div>
-            <div class="col">
-              <button class="btn btn-secondary">Validate Study Plan</button>
-            </div>
-          </div>
-
-          <!-- module allocation by semester !-->
-          <div class="scrollable-box">
-            <!-- with hidden overflow, scroll to see bottom if content too long !-->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="subheading">Year 1 Semester 1</div>
-                <div
-                  class="semester-box"
-                  @drop="onDrop($event, 11)"
-                  @dragenter.prevent
-                  @dragover.prevent
+      <!--Study Plan Component !-->
+      <div class="study-plan-container" ref="studyPlanAll">
+        <button class="btn btn-primary" @click="captureAllSemesters">
+          Download All Semesters
+        </button>
+        <!-- Loop through 4 years -->
+        <div v-for="year in 4" :key="year" class="year-row">
+          <!-- Loop through 2 semesters per year -->
+          <div v-for="semester in 2" :key="semester" class="semester-column">
+            <div
+              class="study-plan"
+              :ref="'studyPlan' + ((year - 1) * 2 + semester)"
+              @drop.prevent="
+                (event) => dropModule(event, (year - 1) * 2 + semester - 1)
+              "
+              @dragover.prevent="allowDrop"
+            >
+              <span class="title">{{
+                getSemester((year - 1) * 2 + semester - 1)
+              }}</span>
+              <div class="drop-zone">Drop modules here</div>
+              <div
+                v-for="(module, moduleIndex) in studyPlans[
+                  (year - 1) * 2 + semester - 1
+                ]"
+                :key="moduleIndex"
+                class="dropped-module"
+              >
+                {{ module.moduleCode }} {{ module.title }}
+                <button
+                  @click="removeModule(module, (year - 1) * 2 + semester - 1)"
+                  class="remove-module-btn"
                 >
-                  <div
-                    v-for="item in getList(11)"
-                    :key="item.id"
-                    class="module"
-                    draggable="true"
-                    @dragstart="startDrag($event, item)"
-                  >
-                    <span> {{ item.title }}</span>
-                    <span class="remove-icon" @click="removeModule(item)"
-                      >❌</span
-                    >
-                  </div>
-                </div>
-              </div>
-
-              <!-- right inner column is for year 1 semester 2 !-->
-              <!-- code will be neater if we do tabs instead, but idk how the drag n drop might work in that case !-->
-              <div class="col-md-6">
-                <div class="subheading">Year 1 Semester 2</div>
-                <div
-                  class="semester-box"
-                  @drop="onDrop($event, 12)"
-                  @dragenter.prevent
-                  @dragover.prevent
-                >
-                  <div
-                    v-for="item in getList(12)"
-                    :key="item.id"
-                    class="module"
-                    draggable="true"
-                    @dragstart="startDrag($event, item)"
-                  >
-                    <span> {{ item.title }}</span>
-                    <span class="remove-icon" @click="removeModule(item)"
-                      >❌</span
-                    >
-                    <!-- remember to include an MC indicator !-->
-                  </div>
-                </div>
+                  &#x2715;
+                </button>
               </div>
             </div>
           </div>
@@ -133,169 +177,397 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import html2canvas from "html2canvas";
+import ModuleSearchBox from "./ModuleSearchBox.vue";
+import ModuleNonSearchBox from "./ModuleNonSearchBox.vue";
+import ModuleDialog from "./ModuleDialog.vue";
+import ModulePlanningHeader from "./ModulePlanningHeader.vue";
+import { btCoreModules } from "./constants";
+import { csCoreModules } from "./constants";
+import { isCoreModules } from "./constants";
 
 export default {
+  name: "ModuleBox",
+  components: {
+    ModuleDialog,
+    ModuleSearchBox,
+    ModuleNonSearchBox,
+    ModulePlanningHeader,
+  },
   data() {
     return {
-      // list of degree requirements for students
-      requirements: [
-        "Common Curriculum Requirements",
-        "Unrestricted Electives",
-        "Programme Requirements",
-        "Programme Electives",
+      studyPlans: Array(8)
+        .fill()
+        .map(() => []), // create 8 separate study plans as empty arrays
+      moduleSearch: "",
+      selectedModule: null, // Holds the currently selected module object
+      filteredModules: [],
+
+      mcCount: { ulr: 0, cm: 0, pe: 0, ue: 0 }, // keeps track of the number of mcs currently fulfilled
+      mcLimit: { ulr: 24, cm: 20, pe: 24, ue: 40 }, // keeps track of mc requirements
+
+      // supposed to fetch user major from user database
+      coreModules: btCoreModules,
+      cmCategory: "cm",
+
+      // information for ULR modules
+      showULRDialog: Array(6).fill(false), // for toggling the state of the search boxes
+      ulrModules: [
+        { label: "Critique & Expression", module: null, moduleCount: 0 },
+        { label: "Communities & Engagement", module: null, moduleCount: 0 },
+        { label: "Cultures & Connections", module: null, moduleCount: 0 },
+        { label: "Singapore Studies", module: null, moduleCount: 0 },
+        { label: "Data Literacy", module: null, moduleCount: 0 },
+        { label: "Digital Literacy", module: null, moduleCount: 0 },
+      ],
+      ulrModulePrefixes: [
+        ["GEX"],
+        ["GEN"],
+        ["GEC"],
+        ["GESS"],
+        ["GEA1000", "BT1101", "ST1131", "DSA1101"],
+        ["CS1101S", "CS1010A", "CS1010J"],
       ],
 
-      isOpen: Array.from({ length: 4 }).fill(false), // keeps track of which accordion (degree requirement) is open or closed
+      // prefixes and other information for PE category
+      showPEDialog: false,
+      peModulePrefixes: ["BT3", "BT4", "IS3", "IS4"],
+      peLabel: "Programme Electives",
+      peCategory: "pe",
+      peModules: [],
+
+      // prefixes and other information for PE category
+      showUEDialog: false,
+      ueModulePrefixes: ["JS", "A", "C"],
+      UELabel: "Unrestricted Electives",
+      ueCategory: "ue",
+      ueModules: [],
+
+      // toggle accordions open/closed states
+      isAccordionULROpen: false,
+      isAccordionCSOpen: false,
+      isAccordionPEOpen: false,
+      isAccordionUEOpen: false,
+      allModules: [],
+      primaryDegree: "",
     };
   },
-
+  created() {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      this.userFound = !!user;
+      this.loadUserData();
+    });
+  },
   methods: {
-    toggleAccordion(index) {
-      this.isOpen[index] = !this.isOpen[index]; // toggle the accordion open and closed
+    getSemester(index) {
+      const year = Math.floor(index / 2) + 1;
+      const semester = index % 2 === 0 ? 1 : 2;
+      return "Y" + year + "S" + semester;
+    },
+
+    captureAllSemesters() {
+      html2canvas(this.$refs.studyPlanAll).then((canvas) => {
+        const image = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.download = "study-plan.png";
+        link.href = image;
+        link.click();
+      });
+    },
+
+    handlePEModuleSelected(module) {
+      if (!this.peModules.some((m) => m.moduleCode === module.moduleCode)) {
+        this.peModules.push(module);
+      }
+    },
+
+    handleUEModuleSelected(module) {
+      if (!this.ueModules.some((m) => m.moduleCode === module.moduleCode)) {
+        this.ueModules.push(module);
+      }
+    },
+
+    handleULRModuleSelected(module, index) {
+      this.ulrModules[index].module = module;
+    },
+
+    toggleAccordionULR() {
+      this.isAccordionULROpen = !this.isAccordionULROpen;
+    },
+    toggleAccordionCS() {
+      this.isAccordionCSOpen = !this.isAccordionCSOpen;
+    },
+    toggleAccordionPE() {
+      this.isAccordionPEOpen = !this.isAccordionPEOpen;
+    },
+    toggleAccordionUE() {
+      this.isAccordionUEOpen = !this.isAccordionUEOpen;
+    },
+
+    removeModule(module, semesterIndex) {
+      // updated to filter the modules from the correct semester list
+      this.studyPlans[semesterIndex] = this.studyPlans[semesterIndex].filter(
+        (m) => m.moduleCode !== module.moduleCode
+      );
+
+      if (module.category === "cm") {
+        this.coreModules.push(module.moduleCode); // return the moduleCode to the list of coreModules
+        this.mcCount["cm"] -= 4;
+      }
+
+      if (module.category === "pe") {
+        this.peModules.push(module); // return the module to the list of peModules
+        this.mcCount["pe"] -= 4;
+      }
+
+      if (module.category === "ue") {
+        this.ueModules.push(module); // return the module to the list of ueModules
+        this.mcCount["ue"] -= 4;
+      }
+
+      if (Number.isInteger(module.category)) {
+        this.ulrModules[module.category].module = module; // return the module to the list of ulrModules under the correct category
+        this.ulrModules[module.category].moduleCount -= 1; // requirement is not fulfilled
+        this.mcCount["ulr"] -= 4;
+      }
+    },
+
+    allowDrop(event) {
+      event.preventDefault();
+    },
+
+    dropModule(event, semesterIndex) {
+      const moduleData = event.dataTransfer.getData("application/json");
+      const module = JSON.parse(moduleData);
+
+      // add to the study plan if it is not already inside (prevents duplicates)
+      if (
+        !this.studyPlans[semesterIndex].some(
+          (m) => m.moduleCode === module.moduleCode
+        )
+      ) {
+        this.studyPlans[semesterIndex].push(module);
+      }
+
+      // removing from their categories
+      if (module.category === "cm") {
+        this.coreModules = this.coreModules.filter(
+          (m) => m !== module.moduleCode
+        );
+        this.mcCount["cm"] += 4; // why doesnt parseInt(modue.moduleCredit) work??
+      }
+
+      // removing from their categories
+      if (module.category === "pe") {
+        this.peModules = this.peModules.filter(
+          (m) => m.moduleCode !== module.moduleCode
+        );
+        this.mcCount["pe"] += 4;
+      }
+
+      if (module.category === "ue") {
+        this.ueModules = this.ueModules.filter(
+          (m) => m.moduleCode !== module.moduleCode
+        );
+        this.mcCount["ue"] += 4;
+      }
+
+      if (Number.isInteger(module.category)) {
+        this.ulrModules[module.category].module = null; // remove the module
+        this.ulrModules[module.category].moduleCount += 1; // requirement is fulfilled
+        this.mcCount["ulr"] += 4;
+      }
+    },
+
+    findModule(code) {
+      const module = this.allModules.find(
+        (module) => module.moduleCode === code
+      );
+      return module || null;
+    },
+
+    async fetchModules() {
+      try {
+        const response = await fetch(
+          "https://api.nusmods.com/v2/2023-2024/moduleInfo.json"
+        );
+        this.allModules = await response.json();
+      } catch (error) {
+        console.error("Failed to fetch modules:", error);
+      }
+    },
+
+    async loadUserData() {
+      const auth = getAuth();
+      const db = getFirestore();
+      const user = auth.currentUser;
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          this.primaryDegree = userData.primaryDegree;
+        }
+      }
     },
   },
-
-  setup() {
-    // separate list of modules grouped based on their requirement category
-    const items = ref([
-      { id: 0, title: "Module A", req: "CC", MCs: 4 },
-      { id: 1, title: "Module B", req: "UE", MCs: 4 },
-      { id: 2, title: "Module C", req: "CC", MCs: 4 },
-      { id: 3, title: "Module D", req: "PR", MCs: 4 },
-      // for the last one im just testing if the getList() is working properly
-      { id: 4, title: "Module E", req: "Y1S1", MCs: 4 },
-    ]);
-
-    const getList = (req) => {
-      if (req === "Common Curriculum Requirements") {
-        return items.value.filter((item) => item.req === "CC");
-      } else if (req === "Unrestricted Electives") {
-        return items.value.filter((item) => item.req === "UE");
-      } else if (req === "Programme Requirements") {
-        return items.value.filter((item) => item.req === "PR");
-      } else if (req === "Programme Electives") {
-        return items.value.filter((item) => item.req === "PE");
-      } else if (req === 11) {
-        // omg help idk how else to do this ik it looks abit dumb
-        return items.value.filter((item) => item.req === "Y1S1");
-      } else if (req === 12) {
-        return items.value.filter((item) => item.req === "Y1S2");
-      } else if (req === 21) {
-        return items.value.filter((item) => item.req === "Y2S1");
-      }
-    };
-
-    const startDrag = (event, item) => {
-      event.dataTransfer.dropEffect = "move";
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("itemID", item.id);
-    };
-
-    const onDrop = (event, req) => {
-      const itemID = event.dataTransfer.getData("itemID");
-      const item = items.value.find((item) => item.id === parseInt(itemID));
-      if (item.req !== req) {
-        item.req = req;
-      }
-    };
-
-    const removeModule = (item) => {
-      item.list = 1; // move the item back to the first list
-    };
-
-    return {
-      getList,
-      onDrop,
-      startDrag,
-      removeModule,
-    };
+  created() {
+    this.fetchModules();
   },
 };
 </script>
 
-<style>
-.container {
+<style scoped>
+.page-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  gap: 20px;
+}
+
+.accordion {
+  background-color: lightblue;
+  color: #000;
+  cursor: pointer;
+  padding: 18px;
+  width: 400px;
+  text-align: left;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.badge-success {
+  margin-left: 10px;
+  background-color: green;
+}
+
+.badge-danger {
+  background-color: red;
+  margin-left: 10px;
+}
+
+.accordion-content {
+  padding: 0 18px;
+  background: #fff;
+  overflow: wrap;
+  width: 350px;
+  transition: max-height 0.2s ease-out;
+}
+
+.accordion-container {
+  width: 50%; /* Right side takes up the other half */
+  justify-content: center;
+  align-items: center;
+}
+
+.study-plan-container {
+  width: 50%; /* left side takes up the other half */
+  min-height: 100vh; /* Ensures it's at least as tall as the viewport */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  overflow: visible; /* Ensures no clipping of content */
+}
+
+.year-row {
+  display: flex;
+  width: 100%;
+  justify-content: space-between; /* Spreads the semester columns evenly */
+  margin-bottom: 20px;
+}
+
+.semester-column {
+  flex: 1; /* Each semester column takes up half the space */
   padding: 10px;
 }
 
-.semester-box {
-  margin: 0 10px;
-  padding: 80px;
+/* design for each semester */
+.study-plan {
+  margin-top: 20px;
+  margin-bottom: 20px; /* Adds space between semesters */
+  width: 100%;
+  height: 100%;
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  text-align: center;
+  padding: 20px;
+  background-color: #e0e0e0;
+  border-style: dashed;
+  overflow: hidden; /* Optional, adjust based on content visibility */
+}
+
+.drop-zone {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.drop-zone.drag-over {
+  background-color: #f0f0f0;
+}
+
+.dropped-module {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  margin: 5px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dropped-module .remove-module-btn {
+  margin-left: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.arrow {
+  float: right;
+}
+
+.add-module-btn {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  width: 350px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plus-symbol {
+  font-size: 20px;
+  margin-right: 5px;
+}
+
+.add-module-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.subtitle {
+  font-weight: bold;
 }
 
 .title {
-  text-align: left;
   font-weight: bold;
   font-size: 30px;
-  padding-top: 20px;
-  padding-bottom: 10px;
-}
-
-.subheading {
-  text-align: left;
-  font-weight: bold;
-  font-size: 20px;
-}
-
-.req-modules {
-  display: flex;
-}
-
-.module {
-  position: relative;
-  display: inline-block;
-  background-color: #89cff0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 30px 40px;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  margin-right: 20px;
-  cursor: pointer;
-  font-size: 20px;
-  font-weight: bold;
-  top: 5px;
-}
-
-.module:hover {
-  background-color: #72a0c1;
-}
-
-.module:hover .remove-icon {
-  display: inline;
-}
-
-.module:last-child {
-  margin-bottom: 0;
-}
-
-.remove-icon {
-  font-size: 20px;
-  color: #ff0000;
-  cursor: pointer;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.left-aligned-column {
-  text-align: left;
-  padding-right: 20px;
-}
-
-.scrollable-box {
-  max-height: 500px;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.scrollable-box::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scrollable-box::-webkit-scrollbar-thumb {
-  background-color: #888;
-  border-radius: 4px;
+  margin: 30px;
 }
 </style>

@@ -1,49 +1,55 @@
 <template>
   <div id="app">
     <NavigationBar v-if="isAuthenticated && !isExcludedRoute" />
-    <div class="content-container" :class="{ 'with-navbar': isAuthenticated && !isExcludedRoute }">
+    <div
+      class="content-container"
+      :class="{ 'with-navbar': isAuthenticated && !isExcludedRoute }"
+    >
       <router-view />
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import NavigationBar from './components/NavigationBar.vue'; 
-import router from './router';
+import { ref, onMounted } from "vue";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import NavigationBar from "./components/NavigationBar.vue";
+import router from "./router";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    NavigationBar 
+    NavigationBar,
   },
   computed: {
     isExcludedRoute() {
-      const excludedPaths = ['/login', '/forget-password', '/signup'];
+      const excludedPaths = ["/login", "/forget-password", "/signup"];
       return excludedPaths.includes(this.$route.path);
-    }
+    },
   },
   setup() {
     const isAuthenticated = ref(false);
 
     onMounted(() => {
       const auth = getAuth();
-      onAuthStateChanged(auth, user => {
-  isAuthenticated.value = !!user;
-  if (user && (router.currentRoute.value.path === '/login' || router.currentRoute.value.path === '/signup')) {
-    router.push('/module-planning');
-  } else if (!user && router.currentRoute.value.meta.requiresAuth) {
-    router.push('/login');
-  }
-});
-
+      onAuthStateChanged(auth, (user) => {
+        isAuthenticated.value = !!user;
+        if (
+          user &&
+          (router.currentRoute.value.path === "/login" ||
+            router.currentRoute.value.path === "/signup")
+        ) {
+          router.push("/module-planning");
+        } else if (!user && router.currentRoute.value.meta.requiresAuth) {
+          router.push("/login");
+        }
+      });
     });
 
     return {
-      isAuthenticated
+      isAuthenticated,
     };
-  }
+  },
 };
 </script>
 
