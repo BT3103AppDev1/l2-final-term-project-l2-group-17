@@ -196,7 +196,6 @@
 </template>
 
 <script>
-import Error from './Error.vue'; 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faCalculator, faTrash, faEdit, faBook, faPlus, faChartBar, faEye, faEllipsisV, faCaretDown } from '@fortawesome/free-solid-svg-icons';
