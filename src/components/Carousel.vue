@@ -35,17 +35,21 @@
   </template>
   
   <script>
+  import calculatorImage from '@/assets/calculator.svg';
+  import plannerImage from '@/assets/planner.svg';
+  import communityImage from '@/assets/community.svg';
+
   export default {
     name: 'Carousel',
     data() {
-      return {
-        images: [
-          { id: 1, src: '../../assets/calculator.svg', alt: 'First slide', title: 'GPA Calculator', description: 'GPA calculation made easy.' },
-          { id: 2, src: './assets/planner.svg', alt: 'Second slide', title: 'Module Planner', description: 'Personalized by you, for you.' },
-          { id: 3, src: './assets/community.svg', alt: 'Third slide', title: 'Forum', description: 'Sharing is caring.' },
-        ]
-      }
+    return {
+      images: [
+        { id: 1, src: calculatorImage, alt: 'First slide', title: 'GPA Calculator', description: 'GPA calculation made easy.' },
+        { id: 2, src: plannerImage, alt: 'Second slide', title: 'Module Planner', description: 'Personalized by you, for you.' },
+        { id: 3, src: communityImage, alt: 'Third slide', title: 'Forum', description: 'Sharing is caring.' },
+      ]
     }
+  }
   }
   </script>
 
