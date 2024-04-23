@@ -51,7 +51,7 @@
                     </span>
                   </div>
                   <div v-if="!isPasswordValid" class="invalid-feedback" style="display:block;">
-                    Password should be at least 8 characters
+                    Password should be at least 6 characters
                   </div>
                 </div>
                   
@@ -196,7 +196,7 @@ export default {
       return this.registerInfo.password === this.registerInfo.confirmPassword;
     },
     isPasswordValid() {
-      return this.registerInfo.password.length >= 8;
+      return this.registerInfo.password.length >= 6;
     },
     validStudentId() {
       const regex = /^E\d{7}$/;

@@ -169,8 +169,8 @@
                 return;
             }
 
-            if (this.newPassword.length < 8) {
-              this.message = "Password should be at least 8 characters"
+            if (this.newPassword.length < 6) {
+              this.message = "Password should be at least 6 characters"
               this.isSuccess = false;
               return;
             }
@@ -234,7 +234,7 @@
       return this.currentPassword === '' || 
              this.newPassword === '' || 
              this.confirmNewPassword !== this.newPassword || 
-             this.newPassword.length < 8;
+             this.newPassword.length < 6;
     }
   }
   }
