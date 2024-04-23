@@ -55,10 +55,10 @@
           <span class="arrow">{{ isAccordionCSOpen ? "▲" : "▼" }}</span>
           <span
             :class="{
-              'badge badge-success': mcCount['cm'] >= mcLimit['cm'], // if all req met then success (green)
-              'badge badge-danger': mcCount['cm'] < mcLimit['cm'], // else danger (red)
+              'badge badge-success': mcCount['cm'] >= cmTotalCredits, // if all req met then success (green)
+              'badge badge-danger': mcCount['cm'] < cmTotalCredits, // else danger (red)
             }"
-            >{{ mcCount["cm"] }}/{{ mcLimit["cm"] }} MCs</span
+            >{{ mcCount["cm"] }}/{{ cmTotalCredits }} MCs</span
           >
         </button>
         <div v-show="isAccordionCSOpen" class="accordion-content">
@@ -135,8 +135,7 @@
 
       <!--Study Plan Component !-->
       <div class="study-plan-container" ref="studyPlanAll">
-        <button class="btn btn-primary" @click="captureAllSemesters">
-          Download All Semesters
+        <button class="btn btn-primary" @click="saveStudyPlansToFirestore">Save Study Plans
         </button>
         <!-- Loop through 4 years -->
         <div v-for="year in 4" :key="year" class="year-row">
@@ -178,7 +177,6 @@
 </template>
 
 <script>
-import html2canvas from "html2canvas";
 import ModuleSearchBox from "./ModuleSearchBox.vue";
 import ModuleNonSearchBox from "./ModuleNonSearchBox.vue";
 import ModuleDialog from "./ModuleDialog.vue";
@@ -187,7 +185,8 @@ import { btCoreModules } from "./constants";
 import { csCoreModules } from "./constants";
 import { isCoreModules } from "./constants";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc,setDoc } from "firebase/firestore";
+
 
 export default {
   name: "ModuleBox",
@@ -199,6 +198,7 @@ export default {
   },
   data() {
     return {
+      userId: null,
       studyPlans: Array(8)
         .fill()
         .map(() => []), // create 8 separate study plans as empty arrays
@@ -207,7 +207,7 @@ export default {
       filteredModules: [],
 
       mcCount: { ulr: 0, cm: 0, pe: 0, ue: 0 }, // keeps track of the number of mcs currently fulfilled
-      mcLimit: { ulr: 24, cm: 20, pe: 24, ue: 40 }, // keeps track of mc requirements
+      mcLimit: { ulr: 24, cm: 40, pe: 24, ue: 40 }, // keeps track of mc requirements
 
       // supposed to fetch user major from user database
       coreModules: [],
@@ -258,28 +258,127 @@ export default {
   created() {
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
+      if (user) {
+      this.fetchStudyPlansFromFirestore();  
+    }
       this.userFound = !!user;
       this.loadUserData().then(() => {
-        this.getCoreModules(); // Call after user data is fully loaded
+      this.getCoreModules(); // Call after user data is fully loaded
       });
     });
     this.fetchModules();
+
+  },
+  mounted() {
+    const cmTotalCredits = this.calculateTotalCredits();
   },
   methods: {
+    calculateTotalCredits() {
+    let totalCredits = 0; 
+    this.coreModules.forEach(moduleCode => {
+      const module = this.formattedModules.find(m => m.moduleCode === moduleCode);
+      if (module && module.credits) {
+        const credits = parseInt(module.credits, 10);
+        if (!isNaN(credits)) {
+          totalCredits += credits;
+        } else {
+          console.error("Invalid credit value for module:", moduleCode, module.credits);
+        }
+      } else {
+        console.error("Module not found or has no credit defined:", moduleCode);
+      }
+    });
+    return totalCredits;
+  },
+    handleModuleCreditChange(moduleCode, isAdding, category) {
+    const module = this.formattedModules.find(m => m.moduleCode === moduleCode);
+    console.log(module);
+    if (module && module.credits) {
+      const credits = parseInt(module.credits, 10); 
+      if (!isNaN(credits)) {
+        if (isAdding) {
+          this.mcCount[category] += credits;
+        } else {
+          this.mcCount[category] -= credits;
+        }
+      } else {
+        console.error("Invalid credit value for module:", moduleCode, module.credits);
+      }
+    } else {
+      console.error("Module not found or has no credit defined:", moduleCode);
+    }
+  },
+    async fetchStudyPlansFromFirestore() {
+    const auth = getAuth();
+    const db = getFirestore();
+    const user = auth.currentUser;
+
+    if (!user) {
+      console.log("No user logged in.");
+      return;
+    }
+
+    const studyPlanDocRef = doc(db, 'studyPlans', user.uid);
+    try {
+      const docSnap = await getDoc(studyPlanDocRef);
+      if (docSnap.exists()) {
+        this.studyPlans = this.parseStudyPlansFromFirestore(docSnap.data());
+      } else {
+        console.log("No study plan found.");
+      }
+    } catch (error) {
+      console.error("Error fetching study plans:", error);
+    }
+  },
+
+  parseStudyPlansFromFirestore(data) {
+    const parsedData = [];
+    Object.keys(data).sort().forEach(key => {
+      if (key.startsWith('semester_')) {
+        parsedData.push(data[key]);
+      }
+    });
+    return parsedData;
+  },
+    formatStudyPlansForFirestore() {
+    const formatted = {};
+    this.studyPlans.forEach((semester, index) => {
+      formatted[`semester_${index + 1}`] = semester.map(module => {
+        return { moduleCode: module.moduleCode, title: module.title };
+      });
+    });
+    console.log(formatted);
+    return formatted;
+  },
+
+  async saveStudyPlansToFirestore() {
+  const auth = getAuth();
+  const db = getFirestore();
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("You must be logged in to save your study plans.");
+    return;
+  }
+
+  const formattedStudyPlans = this.formatStudyPlansForFirestore(); 
+  const studyPlanDocRef = doc(db, 'studyPlans', user.uid);
+
+  try {
+    await setDoc(studyPlanDocRef, formattedStudyPlans, { merge: true });
+    alert('Study plans saved successfully!');
+  } catch (error) {
+    console.error('Error saving study plans:', error);
+    alert('Failed to save study plans.');
+  }
+  console.log(this.formattedModules)
+},
+
+
     getSemester(index) {
       const year = Math.floor(index / 2) + 1;
       const semester = index % 2 === 0 ? 1 : 2;
       return "Y" + year + "S" + semester;
-    },
-
-    captureAllSemesters() {
-      html2canvas(this.$refs.studyPlanAll).then((canvas) => {
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.download = "study-plan.png";
-        link.href = image;
-        link.click();
-      });
     },
 
     handlePEModuleSelected(module) {
@@ -319,23 +418,23 @@ export default {
 
       if (module.category === "cm") {
         this.coreModules.push(module.moduleCode); // return the moduleCode to the list of coreModules
-        this.mcCount["cm"] -= 4;
+        this.handleModuleCreditChange(module.moduleCode, false, module.category)
       }
 
       if (module.category === "pe") {
         this.peModules.push(module); // return the module to the list of peModules
-        this.mcCount["pe"] -= 4;
+        this.handleModuleCreditChange(module.moduleCode, false, module.category);
       }
 
       if (module.category === "ue") {
         this.ueModules.push(module); // return the module to the list of ueModules
-        this.mcCount["ue"] -= 4;
+        this.handleModuleCreditChange(module.moduleCode, false, module.category);
       }
 
       if (Number.isInteger(module.category)) {
         this.ulrModules[module.category].module = module; // return the module to the list of ulrModules under the correct category
         this.ulrModules[module.category].moduleCount -= 1; // requirement is not fulfilled
-        this.mcCount["ulr"] -= 4;
+        this.handleModuleCreditChange(module.moduleCode, false, "ulr");
       }
     },
 
@@ -361,7 +460,7 @@ export default {
         this.coreModules = this.coreModules.filter(
           (m) => m !== module.moduleCode
         );
-        this.mcCount["cm"] += 4; // why doesnt parseInt(modue.moduleCredit) work??
+        this.handleModuleCreditChange(module.moduleCode, true, module.category);
       }
 
       // removing from their categories
@@ -369,20 +468,20 @@ export default {
         this.peModules = this.peModules.filter(
           (m) => m.moduleCode !== module.moduleCode
         );
-        this.mcCount["pe"] += 4;
+        this.handleModuleCreditChange(module.moduleCode, true, module.category);
       }
 
       if (module.category === "ue") {
         this.ueModules = this.ueModules.filter(
           (m) => m.moduleCode !== module.moduleCode
         );
-        this.mcCount["ue"] += 4;
+        this.handleModuleCreditChange(module.moduleCode, true, module.category);
       }
 
       if (Number.isInteger(module.category)) {
         this.ulrModules[module.category].module = null; // remove the module
         this.ulrModules[module.category].moduleCount += 1; // requirement is fulfilled
-        this.mcCount["ulr"] += 4;
+        this.handleModuleCreditChange(module.moduleCode, true, "ulr");
       }
     },
 
@@ -415,7 +514,6 @@ export default {
           this.primaryDegree = userData.primaryDegree;
         }
       }
-      console.log("hi");
     },
 
     async getCoreModules() {
@@ -435,6 +533,16 @@ export default {
       }
     },
   },
+  computed: {
+    formattedModules() {
+      return this.allModules.map(module => ({
+        label: module.moduleCode,
+        moduleCode: module.moduleCode,
+        credits: module.moduleCredit,
+        su: module.attributes && module.attributes.su ? true : false
+      }));
+    },
+  }
 };
 </script>
 
