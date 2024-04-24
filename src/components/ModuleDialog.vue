@@ -39,20 +39,23 @@ export default {
   },
   methods: {
     filterModules() {
-      if (this.moduleSearch.trim()) {
-        const searchLower = this.moduleSearch.toLowerCase();
-        this.filteredModules = this.allModules.filter((module) =>
-          this.prefix.some(
-            (prefix) =>
-              module.moduleCode.startsWith(prefix) &&
-              (module.moduleCode.toLowerCase().includes(searchLower) ||
-                module.title.toLowerCase().includes(searchLower))
-          )
-        );
+    const searchLower = this.moduleSearch.trim().toLowerCase();
+    if (searchLower) {
+      this.filteredModules = this.allModules.filter(module => {
+        const matchesPrefix = this.prefix === null || this.prefix.some(prefix => module.moduleCode.startsWith(prefix));
+        return matchesPrefix && (module.moduleCode.toLowerCase().includes(searchLower) || module.title.toLowerCase().includes(searchLower));
+      });
+    } else {
+      if (this.prefix === null) {
+        this.filteredModules = this.allModules;
       } else {
-        this.filteredModules = [];
+        this.filteredModules = this.allModules.filter(module => 
+          this.prefix.some(prefix => module.moduleCode.startsWith(prefix))
+        );
       }
-    },
+    }
+  },
+
     selectModule(module) {
       this.selectedModule = module; // Store the selected module
       this.moduleSearch = `${module.moduleCode} ${module.title}`; // Show module code and title in search bar

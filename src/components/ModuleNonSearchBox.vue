@@ -7,10 +7,6 @@
       {{ module.moduleCode }} {{ module.title }}
     </div>
   </div>
-  <div v-else class="module-item">
-    <!-- Optional: Display a placeholder or message if module is not available -->
-    Loading module details...
-  </div>
 </template>
 
 <script>

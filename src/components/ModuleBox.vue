@@ -10,10 +10,10 @@
           <span class="arrow">{{ isAccordionULROpen ? "▲" : "▼" }}</span>
           <span
             :class="{
-              'badge badge-success': mcCount['ulr'] >= mcLimit['ulr'], // if all req met then success (green)
-              'badge badge-danger': mcCount['ulr'] < mcLimit['ulr'], // else danger (red)
+              'badge badge-success': mcCount['ulr'] >= this.mcLimit.ulr, // if all req met then success (green)
+              'badge badge-danger': mcCount['ulr'] < this.mcLimit.ulr, // else danger (red)
             }"
-            >{{ mcCount["ulr"] }}/{{ mcLimit["ulr"] }} MCs</span
+            >{{ mcCount["ulr"] }}/{{ this.mcLimit.ulr}} MCs</span
           >
         </button>
         <div v-show="isAccordionULROpen" class="accordion-content">
@@ -55,10 +55,10 @@
           <span class="arrow">{{ isAccordionCSOpen ? "▲" : "▼" }}</span>
           <span
             :class="{
-              'badge badge-success': mcCount['cm'] >= cmTotalCredits, // if all req met then success (green)
-              'badge badge-danger': mcCount['cm'] < cmTotalCredits, // else danger (red)
+              'badge badge-success': mcCount['cm'] >= this.mcLimit.cm, // if all req met then success (green)
+              'badge badge-danger': mcCount['cm'] < this.mcLimit.cm, // else danger (red)
             }"
-            >{{ mcCount["cm"] }}/{{ cmTotalCredits }} MCs</span
+            >{{ mcCount["cm"] }}/{{ totalCoreModuleCredits }} MCs</span
           >
         </button>
         <div v-show="isAccordionCSOpen" class="accordion-content">
@@ -76,10 +76,10 @@
           <span class="arrow">{{ isAccordionPEOpen ? "▲" : "▼" }}</span>
           <span
             :class="{
-              'badge badge-success': mcCount['pe'] >= mcLimit['pe'], // if all req met then success (green)
-              'badge badge-danger': mcCount['pe'] < mcLimit['pe'], // else danger (red)
+              'badge badge-success': mcCount['pe'] >= this.mcLimit.pe, // if all req met then success (green)
+              'badge badge-danger': mcCount['pe'] < this.mcLimit.pe, // else danger (red)
             }"
-            >{{ mcCount["pe"] }}/{{ mcLimit["pe"] }} MCs</span
+            >{{ mcCount["pe"] }}/{{ this.mcLimit.pe }} MCs</span
           >
         </button>
         <div v-show="isAccordionPEOpen" class="accordion-content">
@@ -95,9 +95,9 @@
           <ModuleDialog
             v-if="showPEDialog"
             @close="showPEDialog = false"
-            :allModules="allModules"
+            :allModules="allFilteredModules"
             @module-selected="handlePEModuleSelected"
-            :prefix="peModulePrefixes"
+            :prefix=null
           />
         </div>
 
@@ -107,10 +107,10 @@
           <span class="arrow">{{ isAccordionUEOpen ? "▲" : "▼" }}</span>
           <span
             :class="{
-              'badge badge-success': mcCount['ue'] >= mcLimit['ue'], // if all req met then success (green)
-              'badge badge-danger': mcCount['ue'] < mcLimit['ue'], // else danger (red)
+              'badge badge-success': mcCount['ue'] >= this.mcLimit.ue, // if all req met then success (green)
+              'badge badge-danger': mcCount['ue'] < this.mcLimit.ue, // else danger (red)
             }"
-            >{{ mcCount["ue"] }}/{{ mcLimit["ue"] }} MCs</span
+            >{{ mcCount["ue"] }}/{{ this.mcLimit.ue }} MCs</span
           >
         </button>
         <div v-show="isAccordionUEOpen" class="accordion-content">
@@ -128,7 +128,7 @@
             @close="showUEDialog = false"
             :allModules="allModules"
             @module-selected="handleUEModuleSelected"
-            :prefix="ueModulePrefixes"
+            :prefix=null
           />
         </div>
       </div>
@@ -205,13 +205,13 @@ export default {
       moduleSearch: "",
       selectedModule: null, // Holds the currently selected module object
       filteredModules: [],
+      mcCount : { ulr: 0, cm: 0, pe: 0, ue: 0 },
 
-      mcCount: { ulr: 0, cm: 0, pe: 0, ue: 0 }, // keeps track of the number of mcs currently fulfilled
-      mcLimit: { ulr: 24, cm: 40, pe: 24, ue: 40 }, // keeps track of mc requirements
 
       // supposed to fetch user major from user database
       coreModules: [],
       cmCategory: "cm",
+      coreModulesCopy: [],
 
       // information for ULR modules
       showULRDialog: Array(6).fill(false), // for toggling the state of the search boxes
@@ -269,13 +269,10 @@ export default {
     this.fetchModules();
 
   },
-  mounted() {
-    const cmTotalCredits = this.calculateTotalCredits();
-  },
   methods: {
     calculateTotalCredits() {
     let totalCredits = 0; 
-    this.coreModules.forEach(moduleCode => {
+    this.coreModulesCopy.forEach(moduleCode => {
       const module = this.formattedModules.find(m => m.moduleCode === moduleCode);
       if (module && module.credits) {
         const credits = parseInt(module.credits, 10);
@@ -308,43 +305,51 @@ export default {
       console.error("Module not found or has no credit defined:", moduleCode);
     }
   },
-    async fetchStudyPlansFromFirestore() {
-    const auth = getAuth();
-    const db = getFirestore();
-    const user = auth.currentUser;
+  async fetchStudyPlansFromFirestore() {
+  const auth = getAuth();
+  const db = getFirestore();
+  const user = auth.currentUser;
 
-    if (!user) {
-      console.log("No user logged in.");
-      return;
+  if (!user) {
+    console.log("No user logged in.");
+    return;
+  }
+
+  const studyPlanDocRef = doc(db, 'studyPlans', user.uid);
+  try {
+    const docSnap = await getDoc(studyPlanDocRef);
+    if (docSnap.exists()) {
+      this.studyPlans = this.parseStudyPlansFromFirestore(docSnap.data());
+      this.updateMCCounts(); // Call a method to update MC counts based on fetched data
+    } else {
+      console.log("No study plan found.");
     }
+  } catch (error) {
+    console.error("Error fetching study plans:", error);
+  }
+},
 
-    const studyPlanDocRef = doc(db, 'studyPlans', user.uid);
-    try {
-      const docSnap = await getDoc(studyPlanDocRef);
-      if (docSnap.exists()) {
-        this.studyPlans = this.parseStudyPlansFromFirestore(docSnap.data());
-      } else {
-        console.log("No study plan found.");
-      }
-    } catch (error) {
-      console.error("Error fetching study plans:", error);
+parseStudyPlansFromFirestore(data) {
+  const parsedData = [];
+  Object.keys(data).sort().forEach(key => {
+    if (key.startsWith('semester_')) {
+      // Assume data[key] is an array of modules
+      parsedData.push(data[key].map(module => {
+        return {
+          ...module,
+          category: module.category, // Ensure category is part of your module data
+          credits: module.credits
+        };
+      }));
     }
-  },
-
-  parseStudyPlansFromFirestore(data) {
-    const parsedData = [];
-    Object.keys(data).sort().forEach(key => {
-      if (key.startsWith('semester_')) {
-        parsedData.push(data[key]);
-      }
-    });
-    return parsedData;
-  },
+  });
+  return parsedData;
+},
     formatStudyPlansForFirestore() {
     const formatted = {};
     this.studyPlans.forEach((semester, index) => {
       formatted[`semester_${index + 1}`] = semester.map(module => {
-        return { moduleCode: module.moduleCode, title: module.title };
+        return { moduleCode: module.moduleCode, title: module.title, category: module.category};
       });
     });
     console.log(formatted);
@@ -373,6 +378,34 @@ export default {
   }
   console.log(this.formattedModules)
 },
+updateMCCounts() {
+  this.mcCount = { ulr: 0, cm: 0, pe: 0, ue: 0 };
+  this.studyPlans.forEach(semester => {
+    semester.forEach(module => {
+      const moduleInfo = this.formattedModules.find(m => m.moduleCode === module.moduleCode);
+      if (!moduleInfo) {
+        console.error("Module not found in formattedModules:", module.moduleCode);
+        return; 
+      }
+
+      const credits = parseInt(moduleInfo.credits, 10);
+      if (isNaN(credits)) {
+        console.error("Invalid credit value for module:", module.moduleCode, moduleInfo.credits);
+        return; 
+      }
+      if (Number.isInteger(module.category) && module.category < this.ulrModules.length) {
+        this.ulrModules[module.category].moduleCount += credits; 
+        this.mcCount['ulr'] += credits; 
+      } 
+      else if (module.category && this.mcCount.hasOwnProperty(module.category)) {
+        this.mcCount[module.category] += credits;
+      }
+    });
+  });
+
+  console.log("Updated MC counts:", this.mcCount);
+},
+
 
 
     getSemester(index) {
@@ -486,7 +519,7 @@ export default {
     },
 
     findModule(code) {
-      const module = this.allModules.find(
+      const module = this.allFilteredModules.find(
         (module) => module.moduleCode === code
       );
       return module || null;
@@ -531,9 +564,18 @@ export default {
           this.coreModules = [];
           break;
       }
+      this.coreModulesCopy = [...this.coreModules];
     },
   },
   computed: {
+    mcLimit() {
+    return {
+      ulr: 24,
+      cm: this.totalCoreModuleCredits, // dynamically calculated from another computed property
+      pe: 160 - 24 - this.totalCoreModuleCredits - 40, // uses the computed cm total
+      ue: 40
+    };
+  },
     formattedModules() {
       return this.allModules.map(module => ({
         label: module.moduleCode,
@@ -542,6 +584,16 @@ export default {
         su: module.attributes && module.attributes.su ? true : false
       }));
     },
+    totalCoreModuleCredits() {
+    return this.calculateTotalCredits();
+  },
+  allFilteredModules() {
+    // Flatten the array of arrays in studyPlans to get a single list of modules
+    const plannedModules = this.studyPlans.flat().map(module => module.moduleCode);
+
+    // Filter allModules to exclude those that are already in plannedModules
+    return this.allModules.filter(module => !plannedModules.includes(module.moduleCode));
+  }
   }
 };
 </script>
