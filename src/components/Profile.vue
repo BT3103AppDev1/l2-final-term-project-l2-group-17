@@ -55,7 +55,7 @@
                   <option v-for="faculty in facultyList" :key="faculty">{{ faculty }}</option>
                 </select>
             </div>
-
+            
             <div class="mb-3">
               <label for=“PriDegree” class="form-label">Primary Degree/Major</label>
                 <select class="form-select" id="primarydegree" :placeholder="user.primaryDegree" v-model="editUserData.primaryDegree"  v-if="editUserData && user">
@@ -63,6 +63,7 @@
                   <option v-for="degree in majorDict[editUserData.faculty]" :key="degree">{{ degree }}</option>
                 </select>
             </div>
+            <!--
             <div class="mb-3">
               <label for=“SecDegree” class="form-label">Second Degree</label>
                 <select class="form-select"  id="secondarydegree" :placeholder="user.secondDegree" v-model="editUserData.secondDegree"  v-if="editUserData && user">
@@ -74,9 +75,10 @@
               <label for="SecMajor" class="form-label">Second Major</label>
                 <select class="form-select" id="secondmajor" :placeholder="user.secondMajor" v-model="editUserData.secondMajor"  v-if="editUserData && user">
                   <option disabled value="">Please select one</option>
-                  <option v-for="major in majorList" :key="major">{{ major }}</option>
+                  <option v-for="major in majorList" :key="major">{{ major }}</option> 
                 </select>
             </div>
+              -->
             <div class="mb-3">
               <label for="academicPlan" class="form-label">Academic Plan</label>
                 <select class="form-select" id="acadPlan" :placeholder="user.academicPlan" v-model="editUserData.academicPlan"  v-if="editUserData && user">

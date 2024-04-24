@@ -1,12 +1,12 @@
 // list of nus faculties
 export const facultyList = [
-  "Faculty of Arts and Social Sciences",
-  "School of Business",
+  // "Faculty of Arts and Social Sciences",
+  // "School of Business",
   "School of Computing",
-  "College of Design and Engineering",
-  "Faculty of Law",
-  "Faculty of Science",
-  "Yong Siew Toh Conservatory of Music",
+  // "College of Design and Engineering",
+  // "Faculty of Law",
+  // "Faculty of Science",
+  // "Yong Siew Toh Conservatory of Music",
 ];
 
 // dictionary of nus majors by faculty
@@ -45,8 +45,8 @@ export const majorDict = {
     "Computer Science",
     "Information Systems",
     "Business Analytics",
-    "Information Security",
-    "Computer Engineering",
+    // "Information Security",
+    // "Computer Engineering",
   ],
   "College of Design and Engineering": [
     "Architecture",
@@ -87,7 +87,8 @@ export const majorList = Array.from(new Set(Object.values(majorDict).flat()));
 
 // list of special programmes available (tbc, include scholarships)
 export const progsList = ["SEP", "NOC", "UTCP", "RVRC", "NUS College"];
-export const acadPlanList = ["Single Degree", "Double Degree", "Double Major"];
+export const acadPlanList = ["Single Degree", ]
+                          // "Double Degree", "Double Major"];
 
 export const interestsDict = {
   "module related": ["easy to score", "light workload"],
