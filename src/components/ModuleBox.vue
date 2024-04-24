@@ -40,7 +40,7 @@
             <ModuleDialog
               v-if="showULRDialog[index]"
               @close="showULRDialog[index] = false"
-              :allModules="allModules"
+              :allModules="allFilteredModules"
               @module-selected="
                 (module) => handleULRModuleSelected(module, index)
               "
@@ -126,7 +126,7 @@
           <ModuleDialog
             v-if="showUEDialog"
             @close="showUEDialog = false"
-            :allModules="allModules"
+            :allModules="allFilteredModules"
             @module-selected="handleUEModuleSelected"
             :prefix=null
           />
