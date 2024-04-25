@@ -206,17 +206,19 @@ import { Modal } from 'bootstrap';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 
+// Add FontAwesome icons to the library for use throughout the component
 library.add(faCalculator, faTrash, faEdit, faBook, faPlus, faChartBar, faEye, faEllipsisV, faCaretDown);
 
 export default {
   components: {
     FontAwesomeIcon,
-    'v-select': VueSelect,
+    'v-select': VueSelect,  // Registering VueSelect component for drop-downs
     Error
   },
   data() {
     return {
-      userFound: false, 
+      // General state variables including UI flags and data arrays
+      userFound: false,
       noResultsFound: false,
       searchInitiated: false,
       offset: 0,
@@ -254,26 +256,30 @@ export default {
     };
   },
   created() {
+    // Handle user authentication state changes
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
-      this.userFound = !!user;
-      this.loadUserData();
+      this.userFound = !!user;  // Update user found status based on authentication state
+      this.loadUserData();  // Load user-specific data from Firestore
     });
   },
   async mounted() {
-    await this.fetchModules();
+    await this.fetchModules();  // Fetch module data from API after component is mounted
   },
   methods: {
+    // Method to handle real-time search by user input for module selection
     onSearch(query) {
       this.searchQuery = query;
       this.offset = 0;
       this.searchInitiated = true;
       this.noResultsFound = this.filteredModules.length === 0;
     },
+    // Method to reset the module selection form
     clearForm() {
       this.selectedModule = null;
       this.newModule = { name: '', grade: '', credits: '' };
     },
+    // Method to prepare recommendations based on the S/U option
     prepareSURRecommendations(semester) {
       const overallGPA = this.totalCalculations.totalGPA;
       this.currentSURRecommendations = semester.modules.filter(module => {
@@ -281,25 +287,27 @@ export default {
       });
       this.showSURRecommendationsModal();
     },
+    // Display the S/U recommendations modal window
     showSURRecommendationsModal() {
       const recommendationsModalElement = document.getElementById('suRecommendationsModal');
       const recommendationsModal = new Modal(recommendationsModalElement);
       recommendationsModal.show();
     },
+    // Asynchronously load user data from Firestore and update the local state
     async loadUserData() {
-  const auth = getAuth();
-  const db = getFirestore();
-  const user = auth.currentUser;
-  if (user) {
-    const userDoc = await getDoc(doc(db, "gpa", user.uid));
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      this.modules = userData.modules || [];
-      this.semesters = userData.semesters || [];
-    }
-  }
-},
-
+      const auth = getAuth();
+      const db = getFirestore();
+      const user = auth.currentUser;
+      if (user) {
+        const userDoc = await getDoc(doc(db, "gpa", user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          this.modules = userData.modules || [];
+          this.semesters = userData.semesters || [];
+        }
+      }
+    },
+    // Asynchronously save user data back to Firestore
     async saveUserData() {
       const auth = getAuth();
       const db = getFirestore();
@@ -311,6 +319,7 @@ export default {
         });
       }
     },
+    // Delete a semester from the user's saved data after confirmation
     async deleteSemester(semesterId) {
       const userConfirmed = confirm("Are you sure you want to delete this semester?");
       if (userConfirmed) {
@@ -321,6 +330,7 @@ export default {
         await this.saveUserData();
       }
     },
+    // Save details of the currently selected semester, optionally resetting the selected semester
     async saveSemesterDetails(resetSelectedSemester = true) {
       const semesterIndex = this.semesters.findIndex(s => s.id === this.selectedSemesterId);
       if (semesterIndex === -1) return;
@@ -344,11 +354,13 @@ export default {
       }
       await this.saveUserData();
     },
+    // Display modal to add a new semester
     addSemester() {
       const modalElement = document.getElementById('addSemesterModal');
       const modal = new Modal(modalElement);
       modal.show();
     },
+    // Confirm addition of a new semester after validation
     async confirmAddSemester() {
       if (this.newSemesterName.trim()) {
         const newId = this.semesters.length + 1;
@@ -369,10 +381,12 @@ export default {
         document.getElementById('closeModalButton').click();
       });
     },
+    // Navigate to the selected semester and load its modules
     viewSemester(semesterId) {
       this.selectedSemesterId = semesterId;
       this.modules = this.semesters.find(s => s.id === semesterId)?.modules || [];
     },
+    // Add a module to the current semester
     addModule() {
       let duplicateSemesterName = '';
       const isModuleAdded = this.semesters.some(semester => {
@@ -404,12 +418,14 @@ export default {
         this.saveSemesterDetails(false);
       }
     },
+    // Delete a specific module from the current semester
     deleteModule(index) {
       if (confirm("Are you sure you want to delete this module?")) {
         this.modules.splice(index, 1);
         this.saveSemesterDetails(false);
       }
     },
+    // Start editing a module's details
     editModule(index) {
       const module = this.modules[index];
       this.newModule = { ...module };
@@ -419,11 +435,13 @@ export default {
         this.selectedModule = selected;
       }
     },
+    // Cancel the editing process and reset form
     cancelEdit() {
       this.editingIndex = null;
       this.newModule = { name: '', grade: '', credits: '' };
       this.selectedModule = null;
     },
+    // Fetch modules from an API, typically done at component mounting
     async fetchModules() {
       try {
         const response = await fetch('https://api.nusmods.com/v2/2023-2024/moduleInfo.json');
@@ -438,16 +456,19 @@ export default {
     },
   },
   computed: {
+    // Generate options for grade selection from the grade-to-GPA mapping
     gradeOptions() {
       return Object.keys(this.gradeToGpa).map(grade => ({
         label: grade,
         value: grade
       }));
     },
+    // Retrieve the name of the currently selected semester
     getSelectedSemesterName() {
       const selectedSemester = this.semesters.find(semester => semester.id === this.selectedSemesterId);
       return selectedSemester ? selectedSemester.name : 'No semester selected';
     },
+    // Calculate the GPA for the currently selected semester
     calculatedGPA() {
       let totalPoints = 0;
       let totalCredits = 0;
@@ -460,9 +481,11 @@ export default {
       });
       return totalCredits > 0 ? totalPoints / totalCredits : 0;
     },
+    // Calculate the total number of credits taken in the current semester
     calculatedCredits() {
       return this.modules.reduce((acc, module) => acc + module.credits, 0);
     },
+    // Process modules to add search functionality
     formattedModules() {
       return this.test_modules.map(module => ({
         label: module.moduleCode,
@@ -471,6 +494,7 @@ export default {
         su: module.attributes && module.attributes.su ? true : false
       }));
     },
+    // Calculate total workload, GPA, and S/U usage across all semesters
     totalCalculations() {
       let totalWorkload = 0;
       let totalGradePoints = 0;
@@ -493,11 +517,13 @@ export default {
       const totalGPA = totalCreditsForGPA > 0 ? totalGradePoints / totalCreditsForGPA : 0;
       return { totalWorkload, totalGPA, totalSU };
     },
+    // Filter and paginate modules based on user input and page size
     filteredModules() {
       return this.searchQuery.length > 0
         ? this.formattedModules.filter(module => module.label.toLowerCase().includes(this.searchQuery.toLowerCase()))
         : this.formattedModules;
     },
+    // Apply pagination to the search results
     paginatedModules() {
       if (this.searchQuery.length > 0) {
         const start = this.offset * this.limit;
