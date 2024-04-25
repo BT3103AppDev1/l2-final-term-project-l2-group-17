@@ -255,20 +255,26 @@ export default {
       primaryDegree: "",
     };
   },
-  created() {
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-      this.fetchStudyPlansFromFirestore();  
+  async created() {
+  const auth = getAuth();
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        await Promise.all([
+          this.fetchStudyPlansFromFirestore(),
+          this.loadUserData(),
+          this.fetchModules() 
+        ]);
+        this.getCoreModules(); 
+        this.updateMCCounts(); 
+      } catch (error) {
+        console.error("Error in data fetching:", error);
+      }
     }
-      this.userFound = !!user;
-      this.loadUserData().then(() => {
-      this.getCoreModules(); // Call after user data is fully loaded
-      });
-    });
-    this.fetchModules();
+    this.userFound = !!user;
+  });
+},
 
-  },
   methods: {
     calculateTotalCredits() {
     let totalCredits = 0; 
@@ -320,7 +326,6 @@ export default {
     const docSnap = await getDoc(studyPlanDocRef);
     if (docSnap.exists()) {
       this.studyPlans = this.parseStudyPlansFromFirestore(docSnap.data());
-      this.updateMCCounts(); // Call a method to update MC counts based on fetched data
     } else {
       console.log("No study plan found.");
     }
